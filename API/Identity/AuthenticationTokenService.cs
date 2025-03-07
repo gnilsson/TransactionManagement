@@ -84,10 +84,6 @@ public sealed class AuthenticationTokenService
         var tokenContent = await tokenResponse.Content.ReadAsStringAsync(cancellationToken);
         var tokenData = JsonSerializer.Deserialize<AuthenticationTokenData>(tokenContent)!;
 
-        // Update session with new tokens
-        context.Session.SetString("AccessToken", tokenData.AccessToken);
-        context.Session.SetString("RefreshToken", tokenData.RefreshToken);
-
         return tokenData.AccessToken;
     }
 }

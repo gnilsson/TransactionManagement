@@ -33,17 +33,9 @@ builder.Services.AddHybridCache();
 
 builder.Services.AddIdentity(builder.Configuration);
 
-builder.Services.AddDistributedMemoryCache();
-builder.Services.AddSession(options =>
-{
-    options.IdleTimeout = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly = true;
-    options.Cookie.IsEssential = true;
-});
-
 builder.Services.AddHttpClient(IdentityDefaults.HttpClientName, client =>
 {
-    var keyCloak = builder.Configuration.GetRequiredSection(KeyCloakSettings.SectionName).Get<KeyCloakSettings>()!;
+    var keyCloak = builder.Configuration.GetRequiredSection(SectionName.KeyCloakSettings).Get<KeyCloakSettings>()!;
     client.BaseAddress = new Uri(keyCloak.Authority);
     client.DefaultRequestHeaders.Add("Accept", MediaTypeNames.Application.Json);
 });

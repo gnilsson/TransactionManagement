@@ -1,6 +1,5 @@
 ﻿using API.Data;
 using API.Identity;
-using Microsoft.Extensions.Options;
 
 namespace API.Endpoints.IdentityEndpoints;
 
@@ -18,6 +17,14 @@ public sealed class AuthenticationTokenData
 
 public sealed class IdentityCallback
 {
+    public sealed class Response
+    {
+        public required string AccessToken { get; init; }
+        public required string RefreshToken { get; set; }
+        public required int ExpiresIn { get; init; }
+        public required int RefreshExpiresIn { get; init; }
+    }
+
     public sealed class Endpoint
     {
         private readonly AppDbContext _dbContext;
@@ -31,14 +38,6 @@ public sealed class IdentityCallback
 
         public async Task<IResult> HandleAsync(HttpContext context, CancellationToken cancellationToken)
         {
-            // Process the authentication response from Keycloak
-            // Exchange the authorization code for an access token
-            // Validate the token and create a user session
-
-
-
-
-
             var query = context.Request.Query;
             if (!query.TryGetValue("code", out var code) && !string.IsNullOrWhiteSpace(code))
             {
@@ -66,13 +65,13 @@ public sealed class IdentityCallback
                 return Results.BadRequest("Invalid access token.");
             }
 
-
-            context.Session.SetString("AccessToken", tokenData.AccessToken);
-            context.Session.SetString("RefreshToken", tokenData.RefreshToken);
-            //context.Session.SetString("UserId", validationResult.UserId.ToString());
-
-
-            return Results.Ok("Login success.");
+            return Results.Ok(new Response()
+            {
+                AccessToken = tokenData.AccessToken,
+                RefreshToken = tokenData.RefreshToken,
+                ExpiresIn = tokenData.ExpiresIn,
+                RefreshExpiresIn = tokenData.RefreshExpiresIn
+            });
         }
     }
 }

@@ -9,7 +9,7 @@ public static class IdentityServiceCollectionExtensions
 {
     public static IServiceCollection AddIdentity(this IServiceCollection services, IConfiguration configuration)
     {
-        var keyCloakSettings = configuration.GetRequiredSection(KeyCloakSettings.SectionName).Get<KeyCloakSettings>()!;
+        var keyCloakSettings = configuration.GetRequiredSection(SectionName.KeyCloakSettings).Get<KeyCloakSettings>()!;
 
         services.AddAuthentication(options =>
         {

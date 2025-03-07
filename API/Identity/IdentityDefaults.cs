@@ -14,5 +14,5 @@ public sealed class IdentityDefaults
         public const string User = "UserRole";
     }
 
-    public const string HttpClientName = "IdentityClient";
+    public const string HttpClientName = "TokenClient";
 }

@@ -38,38 +38,39 @@ public static class EndpointWebApplicationExtensions
             return await endpoint.HandleAsync(request, context, cancellationToken);
         }).WithName(Routing.EndpointName.GetTransactions);
 
+        app.MapIdentityEndpoints(configuration);
 
-        var keyCloakSettings = configuration.GetRequiredSection(KeyCloakSettings.SectionName).Get<KeyCloakSettings>()!;
-        var redirectUri = "https://localhost:7150/callback";
-        var loginUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/auth?client_id={keyCloakSettings.ClientID}&response_type=code&scope=openid&redirect_uri={redirectUri}";
-        var logoutUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/logout";
-        var registerUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/registrations?client_id={keyCloakSettings.ClientID}&response_type=code&scope=openid&redirect_uri={redirectUri}";
-        var r = $"http://localhost:8080/realms/myrealm/protocol/openid-connect/registrations?client_id=myclient&scope=openid%20profile&redirect_uri={redirectUri}&response_type=code";
-        // &response_type=code
+        return app;
+    }
+
+    private static WebApplication MapIdentityEndpoints(this WebApplication app, IConfiguration configuration)
+    {
+        var keyCloakSettings = configuration.GetRequiredSection(SectionName.KeyCloakSettings).Get<KeyCloakSettings>()!;
+        var host = configuration.GetRequiredSection(SectionName.Host).Get<string>()!;
+        var redirectUri = $"{host}/callback";
+        var loginUrl = string.Format(KeyCloakEndpoints.Login, keyCloakSettings.Authority, keyCloakSettings.ClientID, redirectUri);
+        var logoutUrl = string.Format(KeyCloakEndpoints.Logout, keyCloakSettings.Authority);
+        var registerUrl = string.Format(KeyCloakEndpoints.Register, keyCloakSettings.Authority, keyCloakSettings.ClientID, redirectUri);
+
         app.MapGet("/login", () =>
         {
             return Results.Redirect(loginUrl);
         });
 
-        app.MapGet("/register", () =>
+        app.MapGet("/logout", () =>
         {
-            return Results.Redirect(r);
-        });
-
-        app.MapGet("/logout", (HttpContext context) =>
-        {
-            //context.Session.Clear();
             return Results.Redirect(logoutUrl);
         });
 
-
-        // Sign out
+        app.MapGet("/register", () =>
+        {
+            return Results.Redirect(registerUrl);
+        });
 
         app.MapGet("/callback", async (HttpContext context, IdentityCallback.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             await endpoint.HandleAsync(context, cancellationToken);
         });
-
 
         return app;
     }

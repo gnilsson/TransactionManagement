@@ -1,4 +1,4 @@
-﻿namespace API.Misc;
+﻿namespace API.Features.ResponseCaching;
 
 public sealed class ResponseCachingTeeStream : Stream
 {
