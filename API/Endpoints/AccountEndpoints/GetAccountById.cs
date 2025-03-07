@@ -2,7 +2,7 @@
 
 namespace API.Endpoints.AccountEndpoints;
 
-public sealed class GetAccountById
+public static class GetAccountById
 {
     public sealed class Request
     {

@@ -4,7 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace API.Endpoints.TransactionEndpoints;
 
-public sealed class CreateTransaction
+public static class CreateTransaction
 {
     public sealed class Request
     {

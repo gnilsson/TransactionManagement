@@ -8,7 +8,7 @@ using System.Text.Json;
 
 namespace API.Endpoints.TransactionEndpoints;
 
-public sealed class GetTransactions
+public static class GetTransactions
 {
     public sealed class Request : Pagination.Request
     {

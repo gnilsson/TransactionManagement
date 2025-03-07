@@ -2,7 +2,7 @@
 
 namespace API.Endpoints.AccountEndpoints;
 
-public sealed class CreateAccount
+public static class CreateAccount
 {
     public sealed class Request
     { }

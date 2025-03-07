@@ -15,7 +15,7 @@ public sealed class AuthenticationTokenData
     public required string Scope { get; init; }
 }
 
-public sealed class IdentityCallback
+public static class IdentityCallback
 {
     public sealed class Response
     {

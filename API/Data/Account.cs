@@ -1,12 +1,11 @@
-﻿using API.Endpoints.AccountEndpoints;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace API.Data;
 
 public sealed class Account
 {
     [Key]
-    public Guid Id { get; set; }
+    public Guid Id { get; }
 
     [Required]
     public decimal Balance { get; set; }

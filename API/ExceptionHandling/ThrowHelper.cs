@@ -24,4 +24,13 @@ public static class ThrowHelper
         }
         throw new InvalidOperationException(message);
     }
+
+    public static void Throw<TException>(string? message = null) where TException : Exception, new()
+    {
+        if (message is null)
+        {
+            throw new TException();
+        }
+        throw (TException)Activator.CreateInstance(typeof(TException), message)!;
+    }
 }

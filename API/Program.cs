@@ -1,8 +1,7 @@
-using API.Data;
 using API.ExceptionHandling;
+using API.Features.Auditing;
 using API.Identity;
 using API.ServiceConfiguration;
-using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
 using System.Net.Mime;
 
@@ -10,18 +9,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddOpenApi();
 
-builder.Services.AddDbContextPool<AppDbContext>((sp, options) =>
-{
-    options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection"));
-    // note:
-    // couldn't get the rowinterceptor to work with sqlite, instead there is a trigger in the initial migration
-    //options.AddInterceptors(new RowVersionInterceptor());
-
-    if (builder.Environment.IsDevelopment())
-    {
-        options.LogTo(Console.WriteLine).EnableSensitiveDataLogging();
-    }
-});
+builder.Services.AddDatabase(builder.Configuration, builder.Environment.IsDevelopment());
 
 builder.Services.AddScoped<ExceptionHandler>();
 
@@ -39,6 +27,8 @@ builder.Services.AddHttpClient(IdentityDefaults.HttpClientName, client =>
     client.BaseAddress = new Uri(keyCloak.Authority);
     client.DefaultRequestHeaders.Add("Accept", MediaTypeNames.Application.Json);
 });
+
+builder.Services.AddHostedService<AuditingBackgroundService>();
 
 var app = builder.Build();
 
@@ -59,9 +49,3 @@ app.MapEndpoints(app.Configuration);
 app.Run();
 
 public partial class Program { }
-
-
-// notes:
-// finish auth
-// add auditing
-//

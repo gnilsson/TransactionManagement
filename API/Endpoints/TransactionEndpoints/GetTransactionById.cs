@@ -2,7 +2,7 @@
 
 namespace API.Endpoints.TransactionEndpoints;
 
-public sealed class GetTransactionById
+public static class GetTransactionById
 {
     public sealed class Request
     {

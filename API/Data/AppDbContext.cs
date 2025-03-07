@@ -14,14 +14,18 @@ public sealed class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        var transaction = modelBuilder.Entity<Transaction>();
-        transaction.Property(t => t.Id).ValueGeneratedOnAdd();
-        transaction.Property(t => t.RowVersion).HasDefaultValue(0).IsRowVersion();
-        transaction.Property(t => t.CreatedAt).HasDefaultValueSql("datetime('now')");
+        var transaction = modelBuilder.Entity<Transaction>(entity =>
+        {
+            entity.Property(t => t.Id).ValueGeneratedOnAdd();
+            entity.Property(t => t.RowVersion).HasDefaultValue(0).IsRowVersion();
+            entity.Property(t => t.CreatedAt).HasDefaultValueSql("datetime('now')");
+        });
 
-        var account = modelBuilder.Entity<Account>();
-        account.Property(t => t.RowVersion).HasDefaultValue(0).IsRowVersion();
-        account.Property(a => a.Id).ValueGeneratedOnAdd();
+        var account = modelBuilder.Entity<Account>(entity =>
+        {
+            entity.Property(t => t.RowVersion).HasDefaultValue(0).IsRowVersion();
+            entity.Property(a => a.Id).ValueGeneratedOnAdd();
+        });
 
         //var user = modelBuilder.Entity<User>();
         //user.Property(u => u.Id).ValueGeneratedOnAdd();
