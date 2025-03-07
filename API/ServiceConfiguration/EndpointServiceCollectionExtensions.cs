@@ -1,4 +1,5 @@
 ﻿using API.Endpoints.AccountEndpoints;
+using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
 
 namespace API.ServiceConfiguration;
@@ -13,6 +14,8 @@ public static class EndpointServiceCollectionExtensions
 
         services.AddScoped<CreateAccount.Endpoint>();
         services.AddScoped<GetAccountById.Endpoint>();
+
+        services.AddScoped<IdentityCallback.Endpoint>();
 
         return services;
     }

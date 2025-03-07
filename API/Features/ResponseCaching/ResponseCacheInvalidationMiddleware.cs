@@ -55,7 +55,7 @@ public sealed class ResponseCacheInvalidationMiddleware
                 return reader.GetString()!;
             }
         }
-        Throw<InvalidOperationException>.WithMessage("The foreign ID property was not found in the request body.");
+        ThrowHelper.Throw("The foreign ID property was not found in the request body.");
         return null!; // note: interesting that the DoesNotReturn attribute doesnt work when its applied last
     }
 }

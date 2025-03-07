@@ -1,5 +1,6 @@
 ﻿using API.Endpoints;
 using API.Endpoints.AccountEndpoints;
+using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
 using API.Identity;
 
@@ -35,14 +36,16 @@ public static class EndpointWebApplicationExtensions
         transactions.MapGet("", async ([AsParameters] GetTransactions.Request request, HttpContext context, GetTransactions.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(request, context, cancellationToken);
-        }).WithName(Routing.EndpointName.GetTransactions).RequireAuthorization();
+        }).WithName(Routing.EndpointName.GetTransactions);
 
 
         var keyCloakSettings = configuration.GetRequiredSection(KeyCloakSettings.SectionName).Get<KeyCloakSettings>()!;
         var redirectUri = "https://localhost:7150/callback";
         var loginUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/auth?client_id={keyCloakSettings.ClientID}&response_type=code&scope=openid&redirect_uri={redirectUri}";
+        var logoutUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/logout";
         var registerUrl = $"{keyCloakSettings.Authority}/protocol/openid-connect/registrations?client_id={keyCloakSettings.ClientID}&response_type=code&scope=openid&redirect_uri={redirectUri}";
-
+        var r = $"http://localhost:8080/realms/myrealm/protocol/openid-connect/registrations?client_id=myclient&scope=openid%20profile&redirect_uri={redirectUri}&response_type=code";
+        // &response_type=code
         app.MapGet("/login", () =>
         {
             return Results.Redirect(loginUrl);
@@ -50,16 +53,23 @@ public static class EndpointWebApplicationExtensions
 
         app.MapGet("/register", () =>
         {
-            return Results.Redirect(registerUrl);
+            return Results.Redirect(r);
         });
 
-        app.MapGet("/callback", async (HttpContext context) =>
+        app.MapGet("/logout", (HttpContext context) =>
         {
-            // Process the authentication response from Keycloak
-            // Exchange the authorization code for an access token
-            // Validate the token and create a user session
-            return Results.Ok("Callback handled");
+            //context.Session.Clear();
+            return Results.Redirect(logoutUrl);
         });
+
+
+        // Sign out
+
+        app.MapGet("/callback", async (HttpContext context, IdentityCallback.Endpoint endpoint, CancellationToken cancellationToken) =>
+        {
+            await endpoint.HandleAsync(context, cancellationToken);
+        });
+
 
         return app;
     }

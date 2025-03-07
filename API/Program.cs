@@ -1,8 +1,10 @@
 using API.Data;
 using API.ExceptionHandling;
+using API.Identity;
 using API.ServiceConfiguration;
 using Microsoft.EntityFrameworkCore;
 using Scalar.AspNetCore;
+using System.Net.Mime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +13,8 @@ builder.Services.AddOpenApi();
 builder.Services.AddDbContextPool<AppDbContext>((sp, options) =>
 {
     options.UseSqlite(builder.Configuration.GetConnectionString("SqliteConnection"));
+    // note:
+    // couldn't get the rowinterceptor to work with sqlite, instead there is a trigger in the initial migration
     //options.AddInterceptors(new RowVersionInterceptor());
 
     if (builder.Environment.IsDevelopment())
@@ -28,6 +32,21 @@ builder.Services.AddHealthChecks();
 builder.Services.AddHybridCache();
 
 builder.Services.AddIdentity(builder.Configuration);
+
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+});
+
+builder.Services.AddHttpClient(IdentityDefaults.HttpClientName, client =>
+{
+    var keyCloak = builder.Configuration.GetRequiredSection(KeyCloakSettings.SectionName).Get<KeyCloakSettings>()!;
+    client.BaseAddress = new Uri(keyCloak.Authority);
+    client.DefaultRequestHeaders.Add("Accept", MediaTypeNames.Application.Json);
+});
 
 var app = builder.Build();
 
@@ -48,3 +67,9 @@ app.MapEndpoints(app.Configuration);
 app.Run();
 
 public partial class Program { }
+
+
+// notes:
+// finish auth
+// add auditing
+//

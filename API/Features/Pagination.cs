@@ -16,6 +16,7 @@ public class Pagination
         public const string PageNumber = "page_number";
         public const string SortDirection = "sort_direction";
         public const string SortBy = "sort_by";
+        public const string Mode = "mode";
     }
 
     public enum SortDirection
@@ -34,6 +35,16 @@ public class Pagination
 
         [JsonPropertyName(ArgumentName.SortBy)]
         public string? SortBy { get; init; }
+        [JsonPropertyName(ArgumentName.Mode)]
+        public string? Mode { get; init; }
+    }
+
+    public enum Mode
+    {
+        Streaming,
+        Metadata,
+        Complete,
+        CompleteStreaming
     }
 
     public sealed class Query
@@ -41,6 +52,7 @@ public class Pagination
         public int PageNumber { get; init; }
         public SortDirection SortDirection { get; init; }
         public required string SortBy { get; init; }
+        public required Mode Mode { get; init; }
     }
 
     public sealed class Data
@@ -67,6 +79,7 @@ public class Pagination
             var pageNumber = context.Request.Query[ArgumentName.PageNumber].FirstOrDefault();
             var sortDirection = context.Request.Query[ArgumentName.SortDirection].FirstOrDefault();
             var sortBy = context.Request.Query[ArgumentName.SortBy].FirstOrDefault();
+            var mode = context.Request.Query[ArgumentName.Mode].FirstOrDefault();
 
             var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
             var paginationQuery = new Query
@@ -76,6 +89,7 @@ public class Pagination
                 SortBy = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
                 ? sb
                 : metadata.AvailableSortOrders.First().Value,
+                Mode = Enum.TryParse<Mode>(mode, true, out var m) ? m : Mode.Streaming
             };
             context.Items[Defaults.QueryKey] = paginationQuery;
 

@@ -35,6 +35,8 @@ public static class IdentityServiceCollectionExtensions
             .AddPolicy(IdentityDefaults.Authorization.Admin, policy => policy.RequireRole(IdentityDefaults.Role.Admin))
             .AddPolicy(IdentityDefaults.Authorization.User, policy => policy.RequireRole(IdentityDefaults.Role.User));
 
+        services.AddScoped<AuthenticationTokenService>();
+
         return services;
     }
 }

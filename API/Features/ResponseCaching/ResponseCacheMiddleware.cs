@@ -24,13 +24,13 @@ public sealed class ResponseCacheMiddleware
         var foreignId = context.Request.Query[metadata.ForeignIdArgumentName].ToString();
 
         var paginationQuery = (context.Items[Pagination.Defaults.QueryKey] as Pagination.Query)!;
-        var cacheKey = $"{Routing.GroupName.Transaction}_{foreignId}_{paginationQuery.PageNumber}_{paginationQuery.SortBy}_{paginationQuery.SortDirection}";
-
+        var cacheKey = $"{Routing.GroupName.Transaction}_{foreignId}_{paginationQuery.PageNumber}_{paginationQuery.SortBy}_{paginationQuery.SortDirection}_{paginationQuery.Mode}";
+       // await _cache.RemoveByTagAsync(string.Format(CachingTags.GroupNameWithIdentifier, metadata.GroupName, foreignId), cancellationToken);
         var cachedResponse = await _cache.GetOrCreateAsync(cacheKey, async ct =>
         {
             var originalBodyStream = context.Response.Body;
             using var responseBody = new MemoryStream();
-            context.Response.Body = new TeeStream(originalBodyStream, responseBody);
+            context.Response.Body = new ResponseCachingTeeStream(originalBodyStream, responseBody, paginationQuery.Mode is Pagination.Mode.CompleteStreaming);
 
             await _next(context);
 

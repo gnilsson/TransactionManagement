@@ -30,7 +30,6 @@ public sealed class RetryHandlingMiddleware
     {
         await _retryPolicy.ExecuteAsync(async (CancellationToken ct) =>
         {
-            throw new DbUpdateConcurrencyException();
             ct.ThrowIfCancellationRequested();
 
             await _next(context);

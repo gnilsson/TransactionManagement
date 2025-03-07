@@ -8,5 +8,5 @@ public sealed class KeyCloakSettings
     public required string ClientID { get; init; }
     public required string BaseUrl { get; init; }
     public required string Realm { get; init; }
-    public string Authority => $"{BaseUrl}/auth/realms/{Realm}";
+    public string Authority => $"{BaseUrl}/realms/{Realm}";
 }

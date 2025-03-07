@@ -14,8 +14,6 @@ public sealed class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // note:
-        // for row version there is SQLite specific config here and in migrations file Initial
         var transaction = modelBuilder.Entity<Transaction>();
         transaction.Property(t => t.Id).ValueGeneratedOnAdd();
         transaction.Property(t => t.RowVersion).HasDefaultValue(0).IsRowVersion();

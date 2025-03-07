@@ -13,4 +13,6 @@ public sealed class IdentityDefaults
         public const string Admin = "AdminRole";
         public const string User = "UserRole";
     }
+
+    public const string HttpClientName = "IdentityClient";
 }
