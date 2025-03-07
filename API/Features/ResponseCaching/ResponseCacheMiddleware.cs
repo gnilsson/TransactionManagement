@@ -1,5 +1,4 @@
 ﻿using API.Endpoints;
-using API.Misc;
 using Microsoft.Extensions.Caching.Hybrid;
 using System.Net.Mime;
 
@@ -16,6 +15,8 @@ public sealed class ResponseCacheMiddleware
         _cache = cache;
     }
 
+    // note:
+    // there are some things that can be done regarding the effectivity of the cache
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;
@@ -24,24 +25,29 @@ public sealed class ResponseCacheMiddleware
         var foreignId = context.Request.Query[metadata.ForeignIdArgumentName].ToString();
 
         var paginationQuery = (context.Items[Pagination.Defaults.QueryKey] as Pagination.Query)!;
-        var cacheKey = $"{Routing.GroupName.Transaction}_{foreignId}_{paginationQuery.PageNumber}_{paginationQuery.SortBy}_{paginationQuery.SortDirection}_{paginationQuery.Mode}";
-       // await _cache.RemoveByTagAsync(string.Format(CachingTags.GroupNameWithIdentifier, metadata.GroupName, foreignId), cancellationToken);
+
+        var cacheKey = string.Format(
+            Caching.Keys.PaginatedOnForeignId,
+            metadata.GroupName,
+            foreignId,
+            paginationQuery.PageNumber,
+            paginationQuery.PageSize,
+            paginationQuery.SortBy,
+            paginationQuery.SortDirection,
+            paginationQuery.Mode);
+
         var cachedResponse = await _cache.GetOrCreateAsync(cacheKey, async ct =>
-        {
-            var originalBodyStream = context.Response.Body;
-            using var responseBody = new MemoryStream();
-            context.Response.Body = new ResponseCachingTeeStream(originalBodyStream, responseBody, paginationQuery.Mode is Pagination.Mode.CompleteStreaming);
+         {
+             using var cachingStream = new MemoryStream();
+             context.Response.Body = new ResponseCachingTeeStream(context.Response.Body, cachingStream);
 
-            await _next(context);
+             await _next(context);
 
-            context.Response.Body = originalBodyStream;
-            responseBody.Seek(0, SeekOrigin.Begin);
-            var response = await new StreamReader(responseBody).ReadToEndAsync(ct);
-
-            return response;
-        },
-        tags: [string.Format(CachingTags.GroupNameWithIdentifier, metadata.GroupName, foreignId)],
-        cancellationToken: cancellationToken);
+             cachingStream.Seek(0, SeekOrigin.Begin);
+             return await new StreamReader(cachingStream).ReadToEndAsync(ct);
+         },
+         tags: [string.Format(Caching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId)],
+         cancellationToken: cancellationToken);
 
         if (!context.Response.HasStarted)
         {

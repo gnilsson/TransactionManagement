@@ -4,13 +4,11 @@ public sealed class ResponseCachingTeeStream : Stream
 {
     private readonly Stream _responseStream;
     private readonly Stream _cacheStream;
-    private readonly bool _isCompleteAndStreaming;
 
-    public ResponseCachingTeeStream(Stream responseStream, Stream cacheStream, bool isCompleteAndStreaming)
+    public ResponseCachingTeeStream(Stream responseStream, Stream cacheStream)
     {
         _responseStream = responseStream;
         _cacheStream = cacheStream;
-        _isCompleteAndStreaming = isCompleteAndStreaming;
     }
 
     public override bool CanRead => _cacheStream.CanRead;
@@ -26,17 +24,6 @@ public sealed class ResponseCachingTeeStream : Stream
 
     public override void Flush()
     {
-        // note:
-        // I have no idea if this makes sense
-        // it is one weird way I found to trick the json serializer to use utf8jsonwriter in the response stream
-        if (_isCompleteAndStreaming)
-        {
-            Task.WaitAll(
-                _responseStream.FlushAsync(),
-                _cacheStream.FlushAsync());
-            return;
-        }
-
         _responseStream.Flush();
         _cacheStream.Flush();
     }
@@ -66,15 +53,6 @@ public sealed class ResponseCachingTeeStream : Stream
 
     public override void Write(byte[] buffer, int offset, int count)
     {
-        // note:
-        // I have no idea if this makes sense
-        if (_isCompleteAndStreaming)
-        {
-            Task.WaitAll(
-                _responseStream.WriteAsync(buffer, offset, count),
-                _cacheStream.WriteAsync(buffer, offset, count));
-            return;
-        }
         _responseStream.Write(buffer, offset, count);
         _cacheStream.Write(buffer, offset, count);
     }

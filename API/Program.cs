@@ -1,9 +1,6 @@
 using API.ExceptionHandling;
-using API.Features.Auditing;
-using API.Identity;
 using API.ServiceConfiguration;
 using Scalar.AspNetCore;
-using System.Net.Mime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -21,14 +18,7 @@ builder.Services.AddHybridCache();
 
 builder.Services.AddIdentity(builder.Configuration);
 
-builder.Services.AddHttpClient(IdentityDefaults.HttpClientName, client =>
-{
-    var keyCloak = builder.Configuration.GetRequiredSection(SectionName.KeyCloakSettings).Get<KeyCloakSettings>()!;
-    client.BaseAddress = new Uri(keyCloak.Authority);
-    client.DefaultRequestHeaders.Add("Accept", MediaTypeNames.Application.Json);
-});
-
-builder.Services.AddHostedService<AuditingBackgroundService>();
+builder.Services.AddAuditing();
 
 var app = builder.Build();
 

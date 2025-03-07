@@ -2,10 +2,10 @@
 using API.Endpoints.AccountEndpoints;
 using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
+using API.Features.Auditing;
 using API.Identity;
 using API.Misc;
 using Microsoft.EntityFrameworkCore;
-
 
 namespace API.ServiceConfiguration;
 
@@ -54,6 +54,16 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GetAccountById.Endpoint>();
 
         services.AddScoped<IdentityCallback.Endpoint>();
+
+        return services;
+    }
+
+    public static IServiceCollection AddAuditing(this IServiceCollection services)
+    {
+        services.AddSingleton<BackgroundTaskQueue<IEnumerable<AuditLog>>>();
+        services.AddSingleton<IBackgroundTaskQueueReader<IEnumerable<AuditLog>>>(sp => sp.GetRequiredService<BackgroundTaskQueue<IEnumerable<AuditLog>>>());
+        services.AddSingleton<IBackgroundTaskQueueWriter<IEnumerable<AuditLog>>>(sp => sp.GetRequiredService<BackgroundTaskQueue<IEnumerable<AuditLog>>>());
+        services.AddHostedService<AuditingBackgroundService>();
 
         return services;
     }

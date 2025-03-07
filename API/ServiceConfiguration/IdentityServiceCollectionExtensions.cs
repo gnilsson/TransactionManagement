@@ -1,6 +1,7 @@
 ﻿using API.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using System.Net.Mime;
 using System.Text;
 
 namespace API.ServiceConfiguration;
@@ -36,6 +37,13 @@ public static class IdentityServiceCollectionExtensions
             .AddPolicy(IdentityDefaults.Authorization.User, policy => policy.RequireRole(IdentityDefaults.Role.User));
 
         services.AddScoped<AuthenticationTokenService>();
+
+        services.AddHttpClient(IdentityDefaults.HttpClientName, client =>
+        {
+            var keyCloak = configuration.GetRequiredSection(SectionName.KeyCloakSettings).Get<KeyCloakSettings>()!;
+            client.BaseAddress = new Uri(keyCloak.Authority);
+            client.DefaultRequestHeaders.Add("Accept", MediaTypeNames.Application.Json);
+        });
 
         return services;
     }

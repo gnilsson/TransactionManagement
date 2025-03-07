@@ -3,7 +3,7 @@ using System.Text.Json.Serialization;
 
 namespace API.Features;
 
-public class Pagination
+public static class Pagination
 {
     public static class Defaults
     {
@@ -14,6 +14,7 @@ public class Pagination
     public static class ArgumentName
     {
         public const string PageNumber = "page_number";
+        public const string PageSize = "page_size";
         public const string SortDirection = "sort_direction";
         public const string SortBy = "sort_by";
         public const string Mode = "mode";
@@ -30,11 +31,15 @@ public class Pagination
         [JsonPropertyName(ArgumentName.PageNumber)]
         public int? PageNumber { get; init; }
 
+        [JsonPropertyName(ArgumentName.PageSize)]
+        public int? PageSize { get; init; }
+
         [JsonPropertyName(ArgumentName.SortDirection)]
         public string? SortDirection { get; init; }
 
         [JsonPropertyName(ArgumentName.SortBy)]
         public string? SortBy { get; init; }
+
         [JsonPropertyName(ArgumentName.Mode)]
         public string? Mode { get; init; }
     }
@@ -42,14 +47,13 @@ public class Pagination
     public enum Mode
     {
         Streaming,
-        Metadata,
         Complete,
-        CompleteStreaming
     }
 
     public sealed class Query
     {
         public int PageNumber { get; init; }
+        public int PageSize { get; init; }
         public SortDirection SortDirection { get; init; }
         public required string SortBy { get; init; }
         public required Mode Mode { get; init; }
@@ -59,7 +63,7 @@ public class Pagination
     {
         public required int TotalCount { get; init; }
         public required int PageNumber { get; init; }
-        public int PageSize { get; } = Defaults.PageSize;
+        public required int PageSize { get; init; }
         public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
         public bool HasPreviousPage => PageNumber > 1;
         public bool HasNextPage => PageNumber < TotalPages;
@@ -77,6 +81,7 @@ public class Pagination
         public async Task InvokeAsync(HttpContext context)
         {
             var pageNumber = context.Request.Query[ArgumentName.PageNumber].FirstOrDefault();
+            var pageSize = context.Request.Query[ArgumentName.PageSize].FirstOrDefault();
             var sortDirection = context.Request.Query[ArgumentName.SortDirection].FirstOrDefault();
             var sortBy = context.Request.Query[ArgumentName.SortBy].FirstOrDefault();
             var mode = context.Request.Query[ArgumentName.Mode].FirstOrDefault();
@@ -85,6 +90,7 @@ public class Pagination
             var paginationQuery = new Query
             {
                 PageNumber = int.TryParse(pageNumber, out var pn) ? pn : 1,
+                PageSize = int.TryParse(pageSize, out var ps) ? ps : Defaults.PageSize,
                 SortDirection = Enum.TryParse<SortDirection>(sortDirection, true, out var sd) ? sd : SortDirection.Ascending,
                 SortBy = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
                 ? sb

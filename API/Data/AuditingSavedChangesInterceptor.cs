@@ -31,36 +31,35 @@ public sealed class AuditingSavedChangesInterceptor : SaveChangesInterceptor
         var auditLogs = YieldAuditLog(dbContext.ChangeTracker.Entries());
 
         await _queueWriter.QueueAsync(auditLogs);
+    }
 
-
-        static IEnumerable<AuditLog> YieldAuditLog(IEnumerable<EntityEntry> entries)
+    private static IEnumerable<AuditLog> YieldAuditLog(IEnumerable<EntityEntry> entries)
+    {
+        foreach (var entry in entries)
         {
-            foreach (var entry in entries)
+            if (entry.Entity is AuditLog || entry.State is EntityState.Detached || entry.State is EntityState.Unchanged) continue;
+
+            var auditLog = new AuditLog
             {
-                if (entry.Entity is AuditLog || entry.State is EntityState.Detached || entry.State is EntityState.Unchanged) continue;
+                TableName = entry.Entity.GetType().Name,
+                Action = entry.State.ToString(),
 
-                var auditLog = new AuditLog
-                {
-                    TableName = entry.Entity.GetType().Name,
-                    Action = entry.State.ToString(),
+                KeyValues = JsonSerializer
+                .Serialize(entry.Properties.Where(p => p.Metadata.IsPrimaryKey())
+                .ToDictionary(p => p.Metadata.Name, p => p.CurrentValue)),
 
-                    KeyValues = JsonSerializer
-                    .Serialize(entry.Properties.Where(p => p.Metadata.IsPrimaryKey())
-                    .ToDictionary(p => p.Metadata.Name, p => p.CurrentValue)),
+                OldValues = entry.State is EntityState.Modified
+                ? JsonSerializer.Serialize(entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.OriginalValue))
+                : null,
 
-                    OldValues = entry.State is EntityState.Modified
-                    ? JsonSerializer.Serialize(entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.OriginalValue))
-                    : null,
+                NewValues = entry.State is EntityState.Added or EntityState.Modified
+                ? JsonSerializer.Serialize(entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.CurrentValue))
+                : null,
 
-                    NewValues = entry.State is EntityState.Added or EntityState.Modified
-                    ? JsonSerializer.Serialize(entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.CurrentValue))
-                    : null,
+                UserId = "system" // Replace with actual user ID if available
+            };
 
-                    UserId = "system" // Replace with actual user ID if available
-                };
-
-                yield return auditLog;
-            }
+            yield return auditLog;
         }
     }
 }

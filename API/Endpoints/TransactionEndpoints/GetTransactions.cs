@@ -12,7 +12,7 @@ public static class GetTransactions
 {
     public sealed class Request : Pagination.Request
     {
-        [FromQuery(Name = "account_id")]
+        [FromQuery(Name = Routing.PropertyArgumentName.AccountId)]
         public Guid AccountId { get; init; }
     }
 
@@ -32,7 +32,6 @@ public static class GetTransactions
     public sealed class Endpoint
     {
         private readonly AppDbContext _dbContext;
-        private readonly JsonSerializerOptions _jsonSerializerOptions = new() { WriteIndented = true };
 
         public Endpoint(AppDbContext appDbContext)
         {
@@ -46,15 +45,7 @@ public static class GetTransactions
                 .Where(t => t.AccountId == request.AccountId);
 
             var totalCount = await query.CountAsync(cancellationToken);
-
             var paginationQuery = (context.Items[Pagination.Defaults.QueryKey] as Pagination.Query)!;
-            var paginationData = new Pagination.Data { TotalCount = totalCount, PageNumber = paginationQuery.PageNumber };
-
-            if (paginationQuery.Mode is Pagination.Mode.Metadata)
-            {
-                return Results.Ok(paginationData);
-            }
-
             var paginated = query
                 .Select(t => new Response
                 {
@@ -62,53 +53,33 @@ public static class GetTransactions
                     Amount = t.Amount,
                     CreatedAt = t.CreatedAt
                 })
-                .Skip((paginationQuery.PageNumber - 1) * Pagination.Defaults.PageSize)
-                .Take(Pagination.Defaults.PageSize)
+                .Skip((paginationQuery.PageNumber - 1) * paginationQuery.PageSize)
+                .Take(paginationQuery.PageSize)
                 .OrderBy(paginationQuery.SortBy, paginationQuery.SortDirection is Pagination.SortDirection.Ascending)
                 .AsAsyncEnumerable();
 
             if (paginationQuery.Mode is Pagination.Mode.Complete)
             {
+                var paginationData = new Pagination.Data
+                {
+                    TotalCount = totalCount,
+                    PageNumber = paginationQuery.PageNumber,
+                    PageSize = paginationQuery.PageSize
+                };
                 var completeResponse = new CompleteResponse
                 {
                     Metadata = paginationData,
                     Items = paginated
                 };
-                return Results.Ok(completeResponse);
-            }
 
-            // note:
-            // The sketchy way to do things
-            if (paginationQuery.Mode is Pagination.Mode.CompleteStreaming)
-            {
-                return Results.Stream(async (stream) =>
-                {
-                    await using var writer = new Utf8JsonWriter(stream, new JsonWriterOptions { Indented = true });
-
-                    writer.WriteStartObject();
-                    writer.WritePropertyName("metadata");
-                    JsonSerializer.Serialize(writer, paginationData);
-                    writer.WritePropertyName("items");
-                    writer.WriteStartArray();
-                    await writer.FlushAsync(cancellationToken);
-
-                    await foreach (var item in paginated.WithCancellation(cancellationToken))
-                    {
-                        JsonSerializer.Serialize(writer, item);
-                        await writer.FlushAsync(cancellationToken);
-                    }
-
-                    writer.WriteEndArray();
-                    writer.WriteEndObject();
-                    await writer.FlushAsync(cancellationToken);
-                }, MediaTypeNames.Application.Json);
+                return Results.Json(completeResponse, EndpointDefaults.JsonSerializerOptions);
             }
 
             return Results.Stream(async (stream) =>
             {
                 await foreach (var item in paginated.WithCancellation(cancellationToken))
                 {
-                    await JsonSerializer.SerializeAsync(stream, item, _jsonSerializerOptions, cancellationToken);
+                    await JsonSerializer.SerializeAsync(stream, item, EndpointDefaults.JsonSerializerOptions, cancellationToken);
                     await stream.FlushAsync(cancellationToken);
                 }
             }, MediaTypeNames.Application.Json);

@@ -40,8 +40,9 @@ public sealed class ResponseCacheInvalidationMiddleware
             var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
             var reader = new Utf8JsonReader(buffer);
             var foreignId = ReadForeignIdProperty(reader, metadata.ForeignIdArgumentName);
+            var tag = string.Format(Caching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
 
-            await _cache.RemoveByTagAsync(string.Format(CachingTags.GroupNameWithIdentifier, metadata.GroupName, foreignId), cancellationToken);
+            await _cache.RemoveByTagAsync(tag, cancellationToken);
         }
     }
 

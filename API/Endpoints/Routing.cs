@@ -26,18 +26,17 @@ public static class Routing
         [$"/{GroupName.Transaction}"] = new FeaturedEndpointMetadata
         {
             GroupName = GroupName.Transaction,
-            ForeignIdArgumentName = "account_id",
+            ForeignIdArgumentName = PropertyArgumentName.AccountId,
             AvailableSortOrders = new Dictionary<string, string>()
             {
-                ["created_at"] = nameof(Transaction.CreatedAt)
+                [PropertyArgumentName.CreatedAt] = nameof(PropertyArgumentName.CreatedAt)
             }
         }
     };
-}
 
-public sealed class FeaturedEndpointMetadata
-{
-    public required string GroupName { get; init; }
-    public required string ForeignIdArgumentName { get; init; }
-    public required IReadOnlyDictionary<string, string> AvailableSortOrders { get; init; }
+    public static class PropertyArgumentName
+    {
+        public const string AccountId = "account_id";
+        public const string CreatedAt = "created_at";
+    }
 }
