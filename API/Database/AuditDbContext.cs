@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using API.Data;
+using Microsoft.EntityFrameworkCore;
 
-namespace API.Data;
+namespace API.Database;
 
 public sealed class AuditDbContext : DbContext
 {
@@ -16,5 +17,7 @@ public sealed class AuditDbContext : DbContext
             entity.Property(a => a.Id).ValueGeneratedOnAdd();
             entity.Property(a => a.Timestamp).HasDefaultValueSql("datetime('now')");
         });
+
+        modelBuilder.HasDefaultSchema("audit");
     }
 }

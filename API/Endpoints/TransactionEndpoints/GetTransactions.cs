@@ -1,4 +1,4 @@
-﻿using API.Data;
+﻿using API.Database;
 using API.Features;
 using API.Misc;
 using Microsoft.AspNetCore.Mvc;

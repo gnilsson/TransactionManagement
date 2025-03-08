@@ -1,4 +1,4 @@
-﻿using API.Data;
+﻿using API.Database;
 using API.Identity;
 
 namespace API.Endpoints.IdentityEndpoints;

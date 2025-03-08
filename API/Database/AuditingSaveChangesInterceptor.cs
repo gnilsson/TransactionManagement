@@ -1,17 +1,18 @@
-﻿using API.ExceptionHandling;
+﻿using API.Data;
+using API.ExceptionHandling;
 using API.Misc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Text.Json;
 
-namespace API.Data;
+namespace API.Database;
 
-public sealed class AuditingSavedChangesInterceptor : SaveChangesInterceptor
+public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 {
     private readonly IBackgroundTaskQueueWriter<IEnumerable<AuditLog>> _queueWriter;
 
-    public AuditingSavedChangesInterceptor(IBackgroundTaskQueueWriter<IEnumerable<AuditLog>> queueWriter)
+    public AuditingSaveChangesInterceptor(IBackgroundTaskQueueWriter<IEnumerable<AuditLog>> queueWriter)
     {
         _queueWriter = queueWriter;
     }

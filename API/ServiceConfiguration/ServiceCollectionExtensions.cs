@@ -1,11 +1,12 @@
 ﻿using API.Data;
+using API.Database;
 using API.Endpoints.AccountEndpoints;
 using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
-using API.Features.Auditing;
 using API.Identity;
 using API.Misc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace API.ServiceConfiguration;
 
@@ -17,13 +18,10 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContextPool<AppDbContext>((sp, options) =>
         {
-            options.UseSqlite(connectionString);
-            // note:
-            // couldn't get the rowinterceptor to work with sqlite, instead there is a trigger in the initial migration
-            //options.AddInterceptors(new RowVersionInterceptor());
+            options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "app"));
 
             var queueWriter = sp.GetRequiredService<IBackgroundTaskQueueWriter<IEnumerable<AuditLog>>>();
-            options.AddInterceptors(new AuditingSavedChangesInterceptor(queueWriter));
+            options.AddInterceptors(new AuditingSaveChangesInterceptor(queueWriter));
 
             if (isDevelopment)
             {
@@ -33,7 +31,7 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContextPool<AuditDbContext>((sp, options) =>
         {
-            options.UseSqlite(connectionString);
+            options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "audit"));
 
             if (isDevelopment)
             {

@@ -1,7 +1,7 @@
 ﻿using API.Data;
 using API.Misc;
 
-namespace API.Features.Auditing;
+namespace API.Database;
 
 public sealed class AuditingBackgroundService : BackgroundService
 {

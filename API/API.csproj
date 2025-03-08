@@ -22,7 +22,6 @@
     <PackageReference Include="Polly" Version="8.5.2" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.0.20" />
     <PackageReference Include="System.Linq.Async" Version="6.0.1" />
-    <!--<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.6.0" />-->
   </ItemGroup>
 
 </Project>

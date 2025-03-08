@@ -1,4 +1,4 @@
-﻿using API.Data;
+﻿using API.Database;
 
 namespace API.Endpoints.TransactionEndpoints;
 
