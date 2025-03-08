@@ -7,6 +7,6 @@ public static class EndpointDefaults
     public static JsonSerializerOptions JsonSerializerOptions { get; } = new()
     {
         WriteIndented = true,
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 }

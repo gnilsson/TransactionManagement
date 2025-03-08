@@ -22,6 +22,7 @@ public static class ServiceCollectionExtensions
 
             var queueWriter = sp.GetRequiredService<IBackgroundTaskQueueWriter<IEnumerable<AuditLog>>>();
             options.AddInterceptors(new AuditingSaveChangesInterceptor(queueWriter));
+            options.AddInterceptors(new ModifiedSaveChangesInterceptor());
 
             if (isDevelopment)
             {

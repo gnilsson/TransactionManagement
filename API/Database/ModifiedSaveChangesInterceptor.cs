@@ -15,7 +15,7 @@ public sealed class ModifiedSaveChangesInterceptor :   SaveChangesInterceptor
         {
             if (entry.State is EntityState.Modified && entry.Entity is ITemporalEntity)
             {
-                entry.Property(nameof(ITemporalEntity.ModifiedAt)).CurrentValue = DateTime.Now;
+                entry.Property(nameof(ITemporalEntity.ModifiedAt)).CurrentValue = DateTime.UtcNow;
             }
         }
 
