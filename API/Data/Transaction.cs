@@ -21,5 +21,5 @@ public sealed class Transaction : IIdentifiableEntity, ITemporalEntity, IRowVers
 
     public DateTime CreatedAt { get; }
 
-    public DateTime ModifiedAt { get; }
+    public DateTime ModifiedAt { get; set; }
 }

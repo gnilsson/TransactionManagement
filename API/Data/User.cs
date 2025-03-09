@@ -17,7 +17,7 @@ public sealed class User : IIdentifiableEntity, ITemporalEntity, IRowVersionedEn
 
     public DateTime CreatedAt { get; }
 
-    public DateTime ModifiedAt { get; }
+    public DateTime ModifiedAt { get; set; }
 
     public long RowVersion { get; }
 }

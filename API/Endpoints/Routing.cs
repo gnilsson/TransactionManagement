@@ -1,6 +1,4 @@
-﻿using API.Data;
-
-namespace API.Endpoints;
+﻿namespace API.Endpoints;
 
 public static class Routing
 {
@@ -29,7 +27,8 @@ public static class Routing
             ForeignIdArgumentName = PropertyArgumentName.AccountId,
             AvailableSortOrders = new Dictionary<string, string>()
             {
-                [PropertyArgumentName.CreatedAt] = nameof(PropertyArgumentName.CreatedAt)
+                [PropertyQueryArgumentName.CreatedAt] = nameof(PropertyQueryArgumentName.CreatedAt),
+                [PropertyQueryArgumentName.ModifiedAt] = nameof(PropertyQueryArgumentName.ModifiedAt)
             }
         }
     };
@@ -37,6 +36,11 @@ public static class Routing
     public static class PropertyArgumentName
     {
         public const string AccountId = "account_id";
-        public const string CreatedAt = "created_at";
+    }
+
+    public static class PropertyQueryArgumentName
+    {
+        public const string CreatedAt = "createdAt";
+        public const string ModifiedAt = "modifiedAt";
     }
 }

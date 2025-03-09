@@ -5,5 +5,5 @@ namespace API.Data;
 public interface ITemporalEntity
 {
     DateTime CreatedAt { get; }
-    DateTime ModifiedAt { get; }
+    DateTime ModifiedAt { get; set; }
 }

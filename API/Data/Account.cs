@@ -17,7 +17,7 @@ public sealed class Account : IIdentifiableEntity, ITemporalEntity
 
     public DateTime CreatedAt { get; }
 
-    public DateTime ModifiedAt { get; }
+    public DateTime ModifiedAt { get; set; }
 
     [Required]
     public Guid UserId { get; init; }

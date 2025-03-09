@@ -21,6 +21,7 @@ public static class GetTransactions
         public Guid TransactionId { get; set; }
         public decimal Amount { get; set; }
         public DateTime CreatedAt { get; set; }
+        public DateTime ModifiedAt { get; set; }
     }
 
     public sealed class CompleteResponse
@@ -51,7 +52,8 @@ public static class GetTransactions
                 {
                     TransactionId = t.Id,
                     Amount = t.Amount,
-                    CreatedAt = t.CreatedAt
+                    CreatedAt = t.CreatedAt,
+                    ModifiedAt = t.ModifiedAt
                 })
                 .Skip((paginationQuery.PageNumber - 1) * paginationQuery.PageSize)
                 .Take(paginationQuery.PageSize)
