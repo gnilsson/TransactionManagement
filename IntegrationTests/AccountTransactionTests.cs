@@ -1,37 +1,44 @@
 ﻿using API.Endpoints.AccountEndpoints;
 using API.Endpoints.TransactionEndpoints;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc.Testing;
+using IntegrationTests.Setup;
 using System.Net;
 using System.Net.Http.Json;
 
 namespace IntegrationTests;
 
-public sealed class AccountTransactionTests(WebApplicationFactory<Program> __factory) : IntegrationTestsBase(__factory)
+public sealed class AccountTransactionTests : IClassFixture<IntegrationTestsFixture>
 {
+    private readonly HttpClient _client;
+
+    public AccountTransactionTests(IntegrationTestsFixture fixture)
+    {
+        _client = fixture.Client;
+    }
+
     [Fact]
     public async Task ProvidesFunctionalHealthcheck()
     {
-        var response = await Client.GetAsync("/ping");
+        var response = await _client.GetAsync("/ping");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
     [Fact]
     public async Task CanCreateAndReadTransactionsAndAccountsWithPositiveAmounts()
     {
-        var accountResponse = await Client.PostAsJsonAsync($"/accounts", new { });
+        var accountResponse = await _client.PostAsJsonAsync($"/accounts", new { });
         accountResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var account = await accountResponse.Content.ReadFromJsonAsync<GetAccountById.Response>();
         account.Should().NotBeNull();
 
-        var transactionResponse = await Client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = 7 });
+        var transactionResponse = await _client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = 7 });
         transactionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var transaction = await transactionResponse.Content.ReadFromJsonAsync<GetTransactionById.Response>();
         transaction.Should().NotBeNull();
 
-        var getTransactionResponse = await Client.GetAsync($"/transactions/{transaction.Id}");
+        var getTransactionResponse = await _client.GetAsync($"/transactions/{transaction.Id}");
         getTransactionResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var fetchedTransaction = await getTransactionResponse.Content.ReadFromJsonAsync<GetTransactionById.Response>();
@@ -40,7 +47,7 @@ public sealed class AccountTransactionTests(WebApplicationFactory<Program> __fac
         fetchedTransaction.AccountId.Should().Be(account.Id);
         fetchedTransaction.Amount.Should().Be(7);
 
-        var getAccountResponse = await Client.GetAsync($"/accounts/{account.Id}");
+        var getAccountResponse = await _client.GetAsync($"/accounts/{account.Id}");
         getAccountResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var fetchedAccount = await getAccountResponse.Content.ReadFromJsonAsync<GetAccountById.Response>();
@@ -52,19 +59,19 @@ public sealed class AccountTransactionTests(WebApplicationFactory<Program> __fac
     [Fact]
     public async Task CanCreateAndReadTransactionsAndAccountsWithNegativeAmounts()
     {
-        var accountResponse = await Client.PostAsJsonAsync($"/accounts", new { });
+        var accountResponse = await _client.PostAsJsonAsync($"/accounts", new { });
         accountResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var account = await accountResponse.Content.ReadFromJsonAsync<GetAccountById.Response>();
         account.Should().NotBeNull();
 
-        var transactionResponse = await Client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = 4 });
+        var transactionResponse = await _client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = 4 });
         transactionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var transaction = await transactionResponse.Content.ReadFromJsonAsync<GetTransactionById.Response>();
         transaction.Should().NotBeNull();
 
-        var getAccountResponse = await Client.GetAsync($"/accounts/{account.Id}");
+        var getAccountResponse = await _client.GetAsync($"/accounts/{account.Id}");
         getAccountResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var fetchedAccount = await getAccountResponse.Content.ReadFromJsonAsync<GetAccountById.Response>();
@@ -72,13 +79,13 @@ public sealed class AccountTransactionTests(WebApplicationFactory<Program> __fac
         fetchedAccount.Id.Should().Be(account.Id);
         fetchedAccount.Balance.Should().Be(4);
 
-        var negativeTransactionResponse = await Client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = -3 });
+        var negativeTransactionResponse = await _client.PostAsJsonAsync("/transactions", new { account_id = account.Id, amount = -3 });
         negativeTransactionResponse.StatusCode.Should().Be(HttpStatusCode.Created);
 
         var negativeTransaction = await negativeTransactionResponse.Content.ReadFromJsonAsync<GetTransactionById.Response>();
         negativeTransaction.Should().NotBeNull();
 
-        var getUpdatedAccountResponse = await Client.GetAsync($"/accounts/{account.Id}");
+        var getUpdatedAccountResponse = await _client.GetAsync($"/accounts/{account.Id}");
         getUpdatedAccountResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         var updatedAccount = await getUpdatedAccountResponse.Content.ReadFromJsonAsync<GetAccountById.Response>();
@@ -93,10 +100,10 @@ public sealed class AccountTransactionTests(WebApplicationFactory<Program> __fac
         var accountId = Guid.NewGuid().ToString();
         var transactionId = Guid.NewGuid().ToString();
 
-        var getAccountResponse = await Client.GetAsync($"/accounts/{accountId}");
+        var getAccountResponse = await _client.GetAsync($"/accounts/{accountId}");
         getAccountResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
 
-        var getTransactionResponse = await Client.GetAsync($"/transactions/{transactionId}");
+        var getTransactionResponse = await _client.GetAsync($"/transactions/{transactionId}");
         getTransactionResponse.StatusCode.Should().Be(HttpStatusCode.NotFound);
     }
 
@@ -105,19 +112,19 @@ public sealed class AccountTransactionTests(WebApplicationFactory<Program> __fac
     {
         var accountId = Guid.NewGuid().ToString();
 
-        var putTransactionResponse = await Client.PutAsJsonAsync("/transactions", new { account_id = accountId, amount = 10 });
+        var putTransactionResponse = await _client.PutAsJsonAsync("/transactions", new { account_id = accountId, amount = 10 });
         putTransactionResponse.StatusCode.Should().Be(HttpStatusCode.MethodNotAllowed);
 
-        var postInvalidContentTypeResponse = await Client.PostAsync("/transactions", new StringContent("<xml></xml>", System.Text.Encoding.UTF8, "application/xml"));
+        var postInvalidContentTypeResponse = await _client.PostAsync("/transactions", new StringContent("<xml></xml>", System.Text.Encoding.UTF8, "application/xml"));
         postInvalidContentTypeResponse.StatusCode.Should().Be(HttpStatusCode.UnsupportedMediaType);
 
-        var postMissingAccountIdResponse = await Client.PostAsJsonAsync("/transactions", new { amount = 7 });
+        var postMissingAccountIdResponse = await _client.PostAsJsonAsync("/transactions", new { amount = 7 });
         postMissingAccountIdResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var postMissingAmountResponse = await Client.PostAsJsonAsync("/transactions", new { account_id = accountId });
+        var postMissingAmountResponse = await _client.PostAsJsonAsync("/transactions", new { account_id = accountId });
         postMissingAmountResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
 
-        var postBadFormatResponse = await Client.PostAsJsonAsync("/transactions", new { account_id = 10, amount = 7 });
+        var postBadFormatResponse = await _client.PostAsJsonAsync("/transactions", new { account_id = 10, amount = 7 });
         postBadFormatResponse.StatusCode.Should().Be(HttpStatusCode.BadRequest);
     }
 }
