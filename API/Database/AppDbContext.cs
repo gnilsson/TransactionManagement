@@ -88,19 +88,3 @@ public sealed class AppDbContext : DbContext
         return (seedUsers, seedAccounts, seedTransactions);
     }
 }
-
-public interface ITemporalEntity
-{
-    DateTime CreatedAt { get; }
-    DateTime ModifiedAt { get; }
-}
-
-public interface IIdentifiableEntity
-{
-    Guid Id { get; }
-}
-
-public interface IRowVersionedEntity
-{
-    long RowVersion { get; }
-}

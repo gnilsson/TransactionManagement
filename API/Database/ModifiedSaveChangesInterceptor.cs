@@ -1,10 +1,11 @@
-﻿using API.ExceptionHandling;
+﻿using API.Data;
+using API.ExceptionHandling;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace API.Database;
 
-public sealed class ModifiedSaveChangesInterceptor :   SaveChangesInterceptor
+public sealed class ModifiedSaveChangesInterceptor : SaveChangesInterceptor
 {
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {

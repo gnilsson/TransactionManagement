@@ -3,7 +3,7 @@ using API.Misc;
 
 namespace API.Database;
 
-public sealed class AuditingBackgroundService : BackgroundService
+public sealed class AuditingBackgroundService : MonitoredBackgroundService
 {
     private readonly IBackgroundTaskQueueReader<IEnumerable<AuditLog>> _queue;
     private readonly ILogger<AuditingBackgroundService> _logger;
@@ -12,30 +12,16 @@ public sealed class AuditingBackgroundService : BackgroundService
     public AuditingBackgroundService(
         IBackgroundTaskQueueReader<IEnumerable<AuditLog>> queue,
         IServiceScopeFactory serviceScopeFactory,
-        ILogger<AuditingBackgroundService> logger)
+        ILogger<AuditingBackgroundService> logger) : base(logger)
     {
         _queue = queue;
         _serviceScopeFactory = serviceScopeFactory;
         _logger = logger;
     }
 
-    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-    {
-        while (!stoppingToken.IsCancellationRequested)
-        {
-            try
-            {
-                await PerformOperationAsync(stoppingToken);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e, "An error occurred while processing the audit logs.");
-                throw;
-            }
-        }
-    }
+    protected override string ServiceName { get; } = nameof(AuditingBackgroundService);
 
-    private async Task PerformOperationAsync(CancellationToken stoppingToken)
+    protected override async Task PerformOperationAsync(CancellationToken stoppingToken)
     {
         if (await _queue.WaitToReadAsync(stoppingToken))
         {
