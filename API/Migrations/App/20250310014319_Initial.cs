@@ -1,4 +1,6 @@
-﻿using System;
+﻿using API.Data;
+using API.Database;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -9,6 +11,16 @@ namespace API.Migrations.App
     public partial class Initial : Migration
     {
         /// <inheritdoc />
+
+        private static readonly string _rowVersionUpdateTrigger = @"
+            CREATE TRIGGER Set{0}RowVersion{1}
+            AFTER {1} ON {0}
+            BEGIN
+                UPDATE {0}
+                SET RowVersion = CAST(ROUND((julianday('now') - 2440587.5)*86400000) AS INT)
+                WHERE rowid = NEW.rowid;
+            END;";
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
@@ -40,7 +52,8 @@ namespace API.Migrations.App
                     Balance = table.Column<decimal>(type: "TEXT", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
                     ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
-                    UserId = table.Column<Guid>(type: "TEXT", nullable: false)
+                    UserId = table.Column<Guid>(type: "TEXT", nullable: false),
+                    RowVersion = table.Column<long>(type: "INTEGER", rowVersion: true, nullable: false, defaultValue: 0L)
                 },
                 constraints: table =>
                 {
@@ -89,6 +102,21 @@ namespace API.Migrations.App
                 schema: "app",
                 table: "Transactions",
                 column: "AccountId");
+
+
+            // note:
+            // for row version there is SQLite specific config here
+            var entityTypes = typeof(AppDbContext).GetProperties()
+                .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
+                .Select(p => (PropertyName: p.Name, GenericArgument: p.PropertyType.GetGenericArguments()[0]))
+                .Where(t => t.GenericArgument.GetProperty(nameof(Account.RowVersion)) is not null);
+
+            foreach (var (propertyName, _) in entityTypes)
+            {
+                var tableName = propertyName.ToUpper();
+                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "UPDATE"));
+                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "INSERT"));
+            }
         }
 
         /// <inheritdoc />

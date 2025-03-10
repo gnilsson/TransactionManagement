@@ -38,6 +38,12 @@ namespace API.Migrations.App
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("datetime('now')");
 
+                    b.Property<long>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0L);
+
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");
 

@@ -55,7 +55,7 @@ public static class DatabaseSeedHelper
     {
         User[] seedUsers =
         [
-            new User { Id = Guid.NewGuid(), Username = "a", Role = "admin"},
+            new User { Id = Guid.NewGuid(), Username = "a", Role = "admin" },
             new User { Id = Guid.NewGuid(), Username = "b", Role = "user" }
         ];
         Account[] seedAccounts =

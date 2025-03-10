@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace API.Migrations.App
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250309193939_Initial")]
+    [Migration("20250310014319_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -40,6 +40,12 @@ namespace API.Migrations.App
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
                         .HasDefaultValueSql("datetime('now')");
+
+                    b.Property<long>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("INTEGER")
+                        .HasDefaultValue(0L);
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("TEXT");

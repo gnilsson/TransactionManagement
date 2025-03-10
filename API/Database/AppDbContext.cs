@@ -17,15 +17,6 @@ public sealed class AppDbContext : DbContext
     {
         modelBuilder.HasDefaultSchema("app");
 
-        //var user = modelBuilder.Entity<User>(entity =>
-        //{ });
-
-        //var account = modelBuilder.Entity<Account>(entity =>
-        //{ });
-
-        //var transaction = modelBuilder.Entity<Transaction>(entity =>
-        //{ });
-
         var entityTypes = typeof(AppDbContext)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
             .Where(x => x.PropertyType.IsGenericType && x.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))

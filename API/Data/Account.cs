@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace API.Data;
 
-public sealed class Account : IIdentifiableEntity, ITemporalEntity
+public sealed class Account : IIdentifiableEntity, ITemporalEntity, IRowVersionedEntity
 {
     [Key]
     public Guid Id { get; set; }
@@ -13,7 +13,6 @@ public sealed class Account : IIdentifiableEntity, ITemporalEntity
 
     public ICollection<Transaction> Transactions { get; } = [];
 
-    public long RowVersion { get; }
 
     public DateTime CreatedAt { get; }
 
@@ -24,4 +23,6 @@ public sealed class Account : IIdentifiableEntity, ITemporalEntity
 
     [ForeignKey(nameof(UserId))]
     public User User { get; } = default!;
+
+    public long RowVersion { get; }
 }
