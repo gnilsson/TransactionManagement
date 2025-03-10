@@ -20,7 +20,7 @@ public static class CreateAccount
 
         public async Task<IResult> HandleAsync(CancellationToken cancellationToken)
         {
-            var user = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Username == "a", cancellationToken);
+            var user = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Username == "aa", cancellationToken);
             if (user is null) return Results.NotFound();
 
             var account = new Account { UserId = user.Id };

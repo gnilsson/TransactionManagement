@@ -1,6 +1,4 @@
-﻿using API.Data;
-using API.Database;
-using Microsoft.EntityFrameworkCore;
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,16 +9,6 @@ namespace API.Migrations.App
     public partial class Initial : Migration
     {
         /// <inheritdoc />
-
-        private static readonly string _rowVersionUpdateTrigger = @"
-            CREATE TRIGGER Set{0}RowVersion{1}
-            AFTER {1} ON {0}
-            BEGIN
-                UPDATE {0}
-                SET RowVersion = CAST(ROUND((julianday('now') - 2440587.5)*86400000) AS INT)
-                WHERE rowid = NEW.rowid;
-            END;";
-
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
@@ -34,8 +22,8 @@ namespace API.Migrations.App
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Username = table.Column<string>(type: "TEXT", nullable: false),
                     Role = table.Column<string>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
-                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
                     RowVersion = table.Column<long>(type: "INTEGER", rowVersion: true, nullable: false, defaultValue: 0L)
                 },
                 constraints: table =>
@@ -50,8 +38,8 @@ namespace API.Migrations.App
                 {
                     Id = table.Column<Guid>(type: "TEXT", nullable: false),
                     Balance = table.Column<decimal>(type: "TEXT", nullable: false),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
-                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
                     UserId = table.Column<Guid>(type: "TEXT", nullable: false),
                     RowVersion = table.Column<long>(type: "INTEGER", rowVersion: true, nullable: false, defaultValue: 0L)
                 },
@@ -76,8 +64,8 @@ namespace API.Migrations.App
                     AccountId = table.Column<Guid>(type: "TEXT", nullable: false),
                     Amount = table.Column<decimal>(type: "TEXT", nullable: false),
                     RowVersion = table.Column<long>(type: "INTEGER", rowVersion: true, nullable: false, defaultValue: 0L),
-                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')"),
-                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValueSql: "datetime('now')")
+                    CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)),
+                    ModifiedAt = table.Column<DateTime>(type: "TEXT", nullable: false, defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified))
                 },
                 constraints: table =>
                 {
@@ -102,21 +90,6 @@ namespace API.Migrations.App
                 schema: "app",
                 table: "Transactions",
                 column: "AccountId");
-
-
-            // note:
-            // for row version there is SQLite specific config here
-            var entityTypes = typeof(AppDbContext).GetProperties()
-                .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-                .Select(p => (PropertyName: p.Name, GenericArgument: p.PropertyType.GetGenericArguments()[0]))
-                .Where(t => t.GenericArgument.GetProperty(nameof(Account.RowVersion)) is not null);
-
-            foreach (var (propertyName, _) in entityTypes)
-            {
-                var tableName = propertyName.ToUpper();
-                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "UPDATE"));
-                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "INSERT"));
-            }
         }
 
         /// <inheritdoc />

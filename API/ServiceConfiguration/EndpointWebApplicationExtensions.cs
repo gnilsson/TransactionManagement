@@ -35,7 +35,6 @@ public static class EndpointWebApplicationExtensions
 
         transactions.MapGet("", async ([AsParameters] GetTransactions.Request request, HttpContext context, GetTransactions.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
-            throw new DivideByZeroException();
             return await endpoint.HandleAsync(request, context, cancellationToken);
         }).WithName(Routing.EndpointName.GetTransactions);
 

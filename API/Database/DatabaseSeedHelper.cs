@@ -9,21 +9,24 @@ public static class DatabaseSeedHelper
     {
         var (seedUsers, seedAccounts, seedTransactions) = CreateSeedData();
 
-        if (!context.Set<User>().Any())
+        var users = context.Set<User>();
+        if (!users.Any())
         {
-            context.Set<User>().AddRange(seedUsers);
+            users.AddRange(seedUsers);
             context.SaveChanges();
         }
 
-        if (!context.Set<Account>().Any())
+        var accounts = context.Set<Account>();
+        if (!accounts.Any())
         {
-            context.Set<Account>().AddRange(seedAccounts);
+            accounts.AddRange(seedAccounts);
             context.SaveChanges();
         }
 
-        if (!context.Set<Transaction>().Any())
+        var transactions = context.Set<Transaction>();
+        if (!transactions.Any())
         {
-            context.Set<Transaction>().AddRange(seedTransactions);
+            transactions.AddRange(seedTransactions);
             context.SaveChanges();
         }
     }
@@ -32,21 +35,24 @@ public static class DatabaseSeedHelper
     {
         var (seedUsers, seedAccounts, seedTransactions) = CreateSeedData();
 
-        if (!await context.Set<User>().AnyAsync(cancellationToken))
+        var users = context.Set<User>();
+        if (!await users.AnyAsync(cancellationToken))
         {
-            await context.Set<User>().AddRangeAsync(seedUsers, cancellationToken);
+            users.AddRange(seedUsers);
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        if (!await context.Set<Account>().AnyAsync(cancellationToken))
+        var accounts = context.Set<Account>();
+        if (!await accounts.AnyAsync(cancellationToken))
         {
-            await context.Set<Account>().AddRangeAsync(seedAccounts, cancellationToken);
+            accounts.AddRange(seedAccounts);
             await context.SaveChangesAsync(cancellationToken);
         }
 
-        if (!await context.Set<Transaction>().AnyAsync(cancellationToken))
+        var transactions = context.Set<Transaction>();
+        if (!await transactions.AnyAsync(cancellationToken))
         {
-            await context.Set<Transaction>().AddRangeAsync(seedTransactions, cancellationToken);
+            transactions.AddRange(seedTransactions);
             await context.SaveChangesAsync(cancellationToken);
         }
     }

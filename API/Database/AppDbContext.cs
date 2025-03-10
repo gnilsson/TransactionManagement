@@ -29,8 +29,14 @@ public sealed class AppDbContext : DbContext
             {
                 if (@interface.Name is nameof(ITemporalEntity))
                 {
-                    builder.Property(nameof(ITemporalEntity.CreatedAt)).HasDefaultValueSql("datetime('now')");
-                    builder.Property(nameof(ITemporalEntity.ModifiedAt)).HasDefaultValueSql("datetime('now')");
+                    builder.Property(nameof(ITemporalEntity.CreatedAt))
+                        .HasDefaultValue(DateTime.MinValue)
+                        .HasValueGenerator<CurrentDateTimeValueGenerator>()
+                        .ValueGeneratedOnAdd();
+
+                    builder.Property(nameof(ITemporalEntity.ModifiedAt))
+                        .HasDefaultValue(DateTime.MinValue);
+
                     continue;
                 }
                 if (@interface.Name is nameof(IRowVersionedEntity))
