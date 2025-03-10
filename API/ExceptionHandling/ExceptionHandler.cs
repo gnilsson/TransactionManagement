@@ -20,6 +20,21 @@ internal sealed class ExceptionHandler
         httpContext.Response.ContentType = MediaTypeNames.Application.ProblemJson;
 
         var exHandlerFeature = httpContext.Features.Get<IExceptionHandlerFeature>()!;
+        if (httpContext.Response.HasStarted)
+        {
+            _logger.LogError(exHandlerFeature.Error, "The response has already started, the exception handler will not be executed.");
+
+            try
+            {
+                await httpContext.Response.CompleteAsync();
+            }
+            catch (Exception e)
+            {
+                _logger.LogCritical(e, "An error occured while completing the response.");
+                return;
+            }
+        }
+
         if (exHandlerFeature.Error is TaskCanceledException or OperationCanceledException)
         {
             httpContext.Response.StatusCode = StatusCodes.Status499ClientClosedRequest;
