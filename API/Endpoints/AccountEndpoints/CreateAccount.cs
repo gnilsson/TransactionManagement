@@ -1,5 +1,6 @@
 ﻿using API.Data;
 using API.Database;
+using Microsoft.EntityFrameworkCore;
 
 namespace API.Endpoints.AccountEndpoints;
 
@@ -19,7 +20,10 @@ public static class CreateAccount
 
         public async Task<IResult> HandleAsync(CancellationToken cancellationToken)
         {
-            var account = new Account();
+            var user = await _appDbContext.Users.FirstOrDefaultAsync(u => u.Username == "a", cancellationToken);
+            if (user is null) return Results.NotFound();
+
+            var account = new Account { UserId = user.Id };
             _appDbContext.Accounts.Add(account);
             await _appDbContext.SaveChangesAsync(cancellationToken);
 

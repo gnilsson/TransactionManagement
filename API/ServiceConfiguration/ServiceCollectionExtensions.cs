@@ -18,7 +18,16 @@ public static class ServiceCollectionExtensions
 
         services.AddDbContextPool<AppDbContext>((sp, options) =>
         {
-            options.UseSqlite(connectionString, o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "app"));
+            options
+            .UseSqlite(connectionString, o => o.MigrationsHistoryTable(HistoryRepository.DefaultTableName, "app"))
+            .UseSeeding((context, _) =>
+            {
+                DatabaseSeedHelper.SeedData(context);
+            })
+            .UseAsyncSeeding(async (context, _, cancellationToken) =>
+            {
+                await DatabaseSeedHelper.SeedDataAsync(context, cancellationToken);
+            });
 
             var queueWriter = sp.GetRequiredService<IBackgroundTaskQueueWriter<IEnumerable<AuditLog>>>();
             options.AddInterceptors(new AuditingSaveChangesInterceptor(queueWriter));

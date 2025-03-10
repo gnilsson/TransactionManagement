@@ -1,12 +1,7 @@
 ﻿using System;
-using API.Data;
-using API.Database;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
-
-#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
 
 namespace API.Migrations.App
 {
@@ -14,16 +9,6 @@ namespace API.Migrations.App
     public partial class Initial : Migration
     {
         /// <inheritdoc />
-
-        private static readonly string _rowVersionUpdateTrigger = @"
-            CREATE TRIGGER Set{0}RowVersion{1}
-            AFTER {1} ON {0}
-            BEGIN
-                UPDATE {0}
-                SET RowVersion = CAST(ROUND((julianday('now') - 2440587.5)*86400000) AS INT)
-                WHERE rowid = NEW.rowid;
-            END;";
-
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
@@ -93,41 +78,6 @@ namespace API.Migrations.App
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.InsertData(
-                schema: "app",
-                table: "Users",
-                columns: new[] { "Id", "Role", "Username" },
-                values: new object[,]
-                {
-                    { new Guid("2437c672-8989-40ad-a361-3e1ecc408e9d"), "admin", "a" },
-                    { new Guid("f0abaff4-94e1-40e0-babc-bf25f7d96f53"), "user", "b" }
-                });
-
-            migrationBuilder.InsertData(
-                schema: "app",
-                table: "Accounts",
-                columns: new[] { "Id", "Balance", "UserId" },
-                values: new object[,]
-                {
-                    { new Guid("26e79493-e834-45d8-ba6c-adb91ad761bf"), 10m, new Guid("2437c672-8989-40ad-a361-3e1ecc408e9d") },
-                    { new Guid("49d31644-3289-48a4-8236-9f78cf076253"), 3m, new Guid("f0abaff4-94e1-40e0-babc-bf25f7d96f53") },
-                    { new Guid("88515c1f-5639-41a6-a37b-6e658251c2dc"), 15m, new Guid("2437c672-8989-40ad-a361-3e1ecc408e9d") }
-                });
-
-            migrationBuilder.InsertData(
-                schema: "app",
-                table: "Transactions",
-                columns: new[] { "Id", "AccountId", "Amount" },
-                values: new object[,]
-                {
-                    { new Guid("0fee4553-91c5-4830-824f-906817d4cf6b"), new Guid("49d31644-3289-48a4-8236-9f78cf076253"), 2m },
-                    { new Guid("6705d939-b215-413f-bd10-4734b348869c"), new Guid("88515c1f-5639-41a6-a37b-6e658251c2dc"), 5m },
-                    { new Guid("75e6ab15-007b-4194-9e62-60cffb28c893"), new Guid("88515c1f-5639-41a6-a37b-6e658251c2dc"), 5m },
-                    { new Guid("899fb601-a29e-48c4-b93c-97794fe0bc4a"), new Guid("49d31644-3289-48a4-8236-9f78cf076253"), 1m },
-                    { new Guid("a521f827-ff7d-4e8a-b802-637d86286f15"), new Guid("88515c1f-5639-41a6-a37b-6e658251c2dc"), 5m },
-                    { new Guid("aef1a876-f654-4aec-92a5-1e039f841554"), new Guid("26e79493-e834-45d8-ba6c-adb91ad761bf"), 10m }
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Accounts_UserId",
                 schema: "app",
@@ -139,20 +89,6 @@ namespace API.Migrations.App
                 schema: "app",
                 table: "Transactions",
                 column: "AccountId");
-
-            // note:
-            // for row version there is SQLite specific config here
-            var entityTypes = typeof(AppDbContext).GetProperties()
-                .Where(p => p.PropertyType.IsGenericType && p.PropertyType.GetGenericTypeDefinition() == typeof(DbSet<>))
-                .Select(p => (PropertyName: p.Name, GenericArgument: p.PropertyType.GetGenericArguments()[0]))
-                .Where(t => t.GenericArgument.GetProperty(nameof(Account.RowVersion)) is not null);
-
-            foreach (var (propertyName, _) in entityTypes)
-            {
-                var tableName = propertyName.ToUpper();
-                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "UPDATE"));
-                migrationBuilder.Sql(string.Format(_rowVersionUpdateTrigger, tableName, "INSERT"));
-            }
         }
 
         /// <inheritdoc />

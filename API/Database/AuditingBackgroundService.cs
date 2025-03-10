@@ -6,7 +6,6 @@ namespace API.Database;
 public sealed class AuditingBackgroundService : MonitoredBackgroundService
 {
     private readonly IBackgroundTaskQueueReader<IEnumerable<AuditLog>> _queue;
-    private readonly ILogger<AuditingBackgroundService> _logger;
     private readonly IServiceScopeFactory _serviceScopeFactory;
 
     public AuditingBackgroundService(
@@ -16,7 +15,6 @@ public sealed class AuditingBackgroundService : MonitoredBackgroundService
     {
         _queue = queue;
         _serviceScopeFactory = serviceScopeFactory;
-        _logger = logger;
     }
 
     protected override string ServiceName { get; } = nameof(AuditingBackgroundService);

@@ -19,5 +19,5 @@ public class AuditLog
 
     public string? NewValues { get; set; }
 
-    public DateTime Timestamp { get; }
+    public DateTime Timestamp { get; set; }
 }

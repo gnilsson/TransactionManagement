@@ -13,25 +13,23 @@ public sealed class AppDbContext : DbContext
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<User> Users => Set<User>();
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("app");
 
-        var (seedUsers, seedAccounts, seedTransactions) = SeedData();
+        //var (seedUsers, seedAccounts, seedTransactions) = CreateSeedData();
 
         var user = modelBuilder.Entity<User>(entity =>
         {
-            entity.HasData(seedUsers);
         });
 
         var account = modelBuilder.Entity<Account>(entity =>
         {
-            entity.HasData(seedAccounts);
         });
 
         var transaction = modelBuilder.Entity<Transaction>(entity =>
         {
-            entity.HasData(seedTransactions);
         });
 
         var entityTypes = typeof(AppDbContext)
@@ -61,30 +59,5 @@ public sealed class AppDbContext : DbContext
                 }
             }
         }
-    }
-
-    private static (User[], Account[], Transaction[]) SeedData()
-    {
-        User[] seedUsers =
-        [
-            new User { Id = Guid.NewGuid(), Username = "a", Role = "admin"},
-            new User { Id = Guid.NewGuid(), Username = "b", Role = "user" }
-        ];
-        Account[] seedAccounts =
-        [
-            new Account { Id = Guid.NewGuid(), Balance = 15, UserId = seedUsers[0].Id },
-            new Account { Id = Guid.NewGuid(), Balance = 10, UserId = seedUsers[0].Id },
-            new Account { Id = Guid.NewGuid(), Balance = 3, UserId = seedUsers[1].Id },
-        ];
-        Transaction[] seedTransactions =
-        [
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[0].Id, Amount = 5 },
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[0].Id, Amount = 5 },
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[0].Id, Amount = 5 },
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[1].Id, Amount = 10 },
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[2].Id, Amount = 2 },
-            new Transaction { Id = Guid.NewGuid(), AccountId = seedAccounts[2].Id, Amount = 1 },
-        ];
-        return (seedUsers, seedAccounts, seedTransactions);
     }
 }
