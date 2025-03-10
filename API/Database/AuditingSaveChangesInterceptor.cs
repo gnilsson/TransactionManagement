@@ -33,7 +33,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 
     public override async ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
     {
-        await _queueWriter.QueueAsync([ .._auditLogs], cancellationToken);
+        await _queueWriter.QueueAsync([.. _auditLogs], cancellationToken);
 
         _auditLogs.Clear();
 
