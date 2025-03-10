@@ -13,24 +13,18 @@ public sealed class AppDbContext : DbContext
     public DbSet<Account> Accounts => Set<Account>();
     public DbSet<User> Users => Set<User>();
 
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.HasDefaultSchema("app");
 
-        //var (seedUsers, seedAccounts, seedTransactions) = CreateSeedData();
+        //var user = modelBuilder.Entity<User>(entity =>
+        //{ });
 
-        var user = modelBuilder.Entity<User>(entity =>
-        {
-        });
+        //var account = modelBuilder.Entity<Account>(entity =>
+        //{ });
 
-        var account = modelBuilder.Entity<Account>(entity =>
-        {
-        });
-
-        var transaction = modelBuilder.Entity<Transaction>(entity =>
-        {
-        });
+        //var transaction = modelBuilder.Entity<Transaction>(entity =>
+        //{ });
 
         var entityTypes = typeof(AppDbContext)
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)

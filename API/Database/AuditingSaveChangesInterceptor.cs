@@ -29,7 +29,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
             _entries.Add((entry, entry.State));
         }
 
-        return base.SavingChangesAsync(eventData, result, cancellationToken);
+        return ValueTask.FromResult(result);
     }
 
     public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData eventData, int result, CancellationToken cancellationToken = default)
@@ -45,7 +45,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
     {
         _entries.Clear();
 
-        return base.SaveChangesFailedAsync(eventData, cancellationToken);
+        return Task.CompletedTask;
     }
 
     private async Task CreateAndQueueAuditLogs(IEnumerable<(EntityEntry, EntityState)> entries)

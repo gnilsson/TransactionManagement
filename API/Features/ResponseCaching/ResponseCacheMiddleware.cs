@@ -38,10 +38,18 @@ public sealed class ResponseCacheMiddleware
 
         var cachedResponse = await _cache.GetOrCreateAsync(cacheKey, async ct =>
          {
+             var originalBody = context.Response.Body;
              using var cachingStream = new MemoryStream();
              context.Response.Body = new ResponseCachingTeeStream(context.Response.Body, cachingStream);
 
-             await _next(context);
+             try
+             {
+                 await _next(context);
+             }
+             finally
+             {
+                 context.Response.Body = originalBody;
+             }
 
              cachingStream.Seek(0, SeekOrigin.Begin);
              return await new StreamReader(cachingStream).ReadToEndAsync(ct);

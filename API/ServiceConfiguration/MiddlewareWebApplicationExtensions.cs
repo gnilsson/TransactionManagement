@@ -14,11 +14,11 @@ public static class MiddlewareWebApplicationExtensions
 
         app.UseExceptionHandler(errApp =>
         {
-            using var scope = errApp.ApplicationServices.CreateScope();
-            var exceptionHandler = scope.ServiceProvider.GetRequiredService<ExceptionHandler>();
-
             errApp.Run(async context =>
             {
+                await using var scope = errApp.ApplicationServices.CreateAsyncScope();
+                var exceptionHandler = scope.ServiceProvider.GetRequiredService<ExceptionHandler>();
+
                 await exceptionHandler.HandleExceptionAsync(context);
             });
         });

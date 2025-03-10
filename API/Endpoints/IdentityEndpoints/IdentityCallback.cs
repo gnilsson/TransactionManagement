@@ -3,18 +3,6 @@ using API.Identity;
 
 namespace API.Endpoints.IdentityEndpoints;
 
-public sealed class AuthenticationTokenData
-{
-    public required string AccessToken { get; init; }
-    public required string RefreshToken { get; set; }
-    public required string TokenType { get; init; }
-    public required int ExpiresIn { get; init; }
-    public required int RefreshExpiresIn { get; init; }
-    public int NotBeforePolicy { get; init; }
-    public required Guid SessionState { get; init; }
-    public required string Scope { get; init; }
-}
-
 public static class IdentityCallback
 {
     public sealed class Response
@@ -50,7 +38,6 @@ public static class IdentityCallback
             if (isRegistration)
             {
                 // Handle registration-specific logic
-                // For example, send a welcome email
             }
 
             var tokenData = await _tokenService.GetAccessTokenAsync(code.ToString(), cancellationToken);
