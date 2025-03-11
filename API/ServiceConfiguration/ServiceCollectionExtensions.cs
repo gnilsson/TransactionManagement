@@ -3,7 +3,6 @@ using API.Database;
 using API.Endpoints.AccountEndpoints;
 using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
-using API.Identity;
 using API.Misc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Migrations;

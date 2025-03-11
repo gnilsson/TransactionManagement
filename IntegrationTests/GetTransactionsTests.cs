@@ -18,8 +18,8 @@ public sealed class GetTransactionsTests : IClassFixture<IntegrationTestsFixture
     public GetTransactionsTests(IntegrationTestsFixture fixture)
     {
         _client = fixture.Client;
-        _accountId = fixture.TestData.AccountIds[0];
-        _amountOfTransactions = fixture.TestData.AmountOfTransactions;
+        _accountId = fixture.TestAnswers.AccountIds[0];
+        _amountOfTransactions = fixture.TestAnswers.AmountOfTransactions;
     }
 
     [Fact]

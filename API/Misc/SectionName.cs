@@ -1,4 +1,4 @@
-﻿namespace API.Identity;
+﻿namespace API.Misc;
 
 public sealed class SectionName
 {

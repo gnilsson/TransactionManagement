@@ -10,10 +10,12 @@ namespace IntegrationTests;
 public sealed class AccountTransactionTests : IClassFixture<IntegrationTestsFixture>
 {
     private readonly HttpClient _client;
+    private readonly Guid _userId;
 
     public AccountTransactionTests(IntegrationTestsFixture fixture)
     {
         _client = fixture.Client;
+        _userId = fixture.TestAnswers.UserId;
     }
 
     [Fact]

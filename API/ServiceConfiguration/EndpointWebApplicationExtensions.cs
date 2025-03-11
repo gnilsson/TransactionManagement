@@ -3,6 +3,7 @@ using API.Endpoints.AccountEndpoints;
 using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
 using API.Identity;
+using API.Misc;
 
 namespace API.ServiceConfiguration;
 

@@ -11,7 +11,7 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
 {
     public HttpClient Client { get; private set; }
     public WebApplicationFactory<Program> Factory { get; private set; }
-    public TestData TestData { get; private set; } = default!;
+    public TestAnswers TestAnswers { get; private set; } = default!;
 
     public IntegrationTestsFixture()
     {
@@ -55,13 +55,16 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
         await db.Database.EnsureCreatedAsync();
 
         // Seed the database with test data
-        TestData = await SeedTestDataAsync(db);
+        TestAnswers = await SeedTestDataAsync(db);
     }
 
-    private static async Task<TestData> SeedTestDataAsync(AppDbContext dbContext)
+    private static async Task<TestAnswers> SeedTestDataAsync(AppDbContext dbContext)
     {
         // Add test data to the database
-        var account = new Account { Id = Guid.NewGuid(), Balance = 1000 };
+        var userId = Guid.NewGuid();
+        var user = new User { Id = userId, Username = "aa", Role = "admin" };
+        var account = new Account { Id = Guid.NewGuid(), Balance = 1000, UserId = userId };
+        dbContext.Users.Add(user);
         dbContext.Accounts.Add(account);
 
         var amountOfTransactions = 5;
@@ -78,8 +81,9 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
 
         await dbContext.SaveChangesAsync();
 
-        return new TestData
+        return new TestAnswers
         {
+            UserId = userId,
             AccountIds = [account.Id],
             AmountOfTransactions = amountOfTransactions,
         };
