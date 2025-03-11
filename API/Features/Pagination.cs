@@ -56,6 +56,7 @@ public static class Pagination
         public int PageSize { get; init; }
         public SortDirection SortDirection { get; init; }
         public required string SortBy { get; init; }
+        //public required Delegate SortBySelector { get; init; }
         public required Mode Mode { get; init; }
     }
 
@@ -94,7 +95,8 @@ public static class Pagination
                 SortDirection = Enum.TryParse<SortDirection>(sortDirection, true, out var sd) ? sd : SortDirection.Ascending,
                 SortBy = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
                 ? sb
-                : metadata.AvailableSortOrders.First().Value,
+                : metadata.AvailableSortOrders.First(),
+                //SortBySelector = Routing.CreateSortBySelectorDelegate()
                 Mode = Enum.TryParse<Mode>(mode, true, out var m) ? m : Mode.Streaming
             };
             context.Items[Defaults.QueryKey] = paginationQuery;

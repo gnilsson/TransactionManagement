@@ -38,6 +38,8 @@ public sealed class ResponseCacheMiddleware
 
         var cachedResponse = await _cache.GetOrCreateAsync(cacheKey, async ct =>
          {
+             ct.ThrowIfCancellationRequested();
+
              var originalBody = context.Response.Body;
              using var cachingStream = new MemoryStream();
              context.Response.Body = new ResponseCachingTeeStream(context.Response.Body, cachingStream);
@@ -52,7 +54,7 @@ public sealed class ResponseCacheMiddleware
              }
 
              cachingStream.Seek(0, SeekOrigin.Begin);
-             return await new StreamReader(cachingStream).ReadToEndAsync(ct);
+             return await new StreamReader(cachingStream).ReadToEndAsync(CancellationToken.None);
          },
          tags: [string.Format(Caching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId)],
          cancellationToken: cancellationToken);

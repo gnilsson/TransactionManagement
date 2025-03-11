@@ -26,11 +26,17 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
         {
             builder.ConfigureServices(services =>
             {
-                // Remove the existing DbContext registration
-                var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDbContextOptionsConfiguration<AppDbContext>));
-                if (descriptor is not null)
+                var auditingDescriptor = services.SingleOrDefault(d => d.ImplementationType == typeof(AuditingBackgroundService));
+                if (auditingDescriptor is not null)
                 {
-                    services.Remove(descriptor);
+                    services.Remove(auditingDescriptor);
+                }
+
+                // Remove the existing DbContext registration
+                var dbOptionsDescriptor = services.SingleOrDefault(d => d.ServiceType == typeof(IDbContextOptionsConfiguration<AppDbContext>));
+                if (dbOptionsDescriptor is not null)
+                {
+                    services.Remove(dbOptionsDescriptor);
                 }
 
                 // Add a new DbContext registration with an in-memory database for testing

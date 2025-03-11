@@ -1,6 +1,5 @@
 ﻿using API.Database;
 using API.Features;
-using API.Misc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Net.Mime;
@@ -47,6 +46,7 @@ public static class GetTransactions
 
             var totalCount = await query.CountAsync(cancellationToken);
             var paginationQuery = (context.Items[Pagination.Defaults.QueryKey] as Pagination.Query)!;
+
             var paginated = query
                 .Select(t => new Response
                 {
@@ -56,9 +56,10 @@ public static class GetTransactions
                     ModifiedAt = t.ModifiedAt
                 })
                 .Skip((paginationQuery.PageNumber - 1) * paginationQuery.PageSize)
-                .Take(paginationQuery.PageSize)
-                .OrderBy(paginationQuery.SortBy, paginationQuery.SortDirection is Pagination.SortDirection.Ascending)
-                .AsAsyncEnumerable();
+                .Take(paginationQuery.PageSize);
+
+            var sortByQuery = Routing.SortByQueries[$"{paginationQuery.SortBy}{paginationQuery.SortDirection}"];
+            var orderedPaginated = sortByQuery(paginated).AsAsyncEnumerable();
 
             if (paginationQuery.Mode is Pagination.Mode.Complete)
             {
@@ -71,7 +72,7 @@ public static class GetTransactions
                 var completeResponse = new CompleteResponse
                 {
                     Metadata = paginationData,
-                    Items = paginated
+                    Items = orderedPaginated
                 };
 
                 return Results.Json(completeResponse, EndpointDefaults.JsonSerializerOptions);
@@ -79,7 +80,7 @@ public static class GetTransactions
 
             return Results.Stream(async (stream) =>
             {
-                await foreach (var item in paginated.WithCancellation(cancellationToken))
+                await foreach (var item in orderedPaginated.WithCancellation(cancellationToken))
                 {
                     await JsonSerializer.SerializeAsync(stream, item, EndpointDefaults.JsonSerializerOptions, cancellationToken);
                     await stream.FlushAsync(cancellationToken);

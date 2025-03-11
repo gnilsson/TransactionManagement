@@ -1,4 +1,9 @@
-﻿namespace API.Endpoints;
+﻿using API.Endpoints.TransactionEndpoints;
+using API.Features;
+using API.Misc;
+using System.Collections.Frozen;
+
+namespace API.Endpoints;
 
 public static class Routing
 {
@@ -19,20 +24,6 @@ public static class Routing
         public const string GetTransactions = nameof(TransactionEndpoints.GetTransactions);
     }
 
-    public static Dictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; } = new()
-    {
-        [$"/{GroupName.Transaction}"] = new FeaturedEndpointMetadata
-        {
-            GroupName = GroupName.Transaction,
-            ForeignIdArgumentName = PropertyArgumentName.AccountId,
-            AvailableSortOrders = new Dictionary<string, string>()
-            {
-                [PropertyQueryArgumentName.CreatedAt] = nameof(PropertyQueryArgumentName.CreatedAt),
-                [PropertyQueryArgumentName.ModifiedAt] = nameof(PropertyQueryArgumentName.ModifiedAt)
-            }
-        }
-    };
-
     public static class PropertyArgumentName
     {
         public const string AccountId = "account_id";
@@ -43,4 +34,39 @@ public static class Routing
         public const string CreatedAt = "createdAt";
         public const string ModifiedAt = "modifiedAt";
     }
+
+    static Routing()
+    {
+        string[] availableSortOrders = [PropertyQueryArgumentName.CreatedAt, PropertyQueryArgumentName.ModifiedAt];
+        var featuredEndpoints = new Dictionary<string, FeaturedEndpointMetadata>()
+        {
+            [$"/{GroupName.Transaction}"] = new FeaturedEndpointMetadata
+            {
+                GroupName = GroupName.Transaction,
+                ForeignIdArgumentName = PropertyArgumentName.AccountId,
+                AvailableSortOrders = FrozenSet.Create<string>(availableSortOrders),
+            }
+        };
+        FeaturedEndpoints = featuredEndpoints.ToFrozenDictionary();
+
+        var sortByQueries = new Dictionary<
+            string,
+            Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>>(
+            StringComparer.OrdinalIgnoreCase);
+
+        foreach (var sortBy in availableSortOrders)
+        {
+            sortByQueries.Add(
+                $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
+                QueryBuilder.CreateSortByQuery<GetTransactions.Response>(sortBy, true));
+
+            sortByQueries.Add(
+                $"{sortBy}{nameof(Pagination.SortDirection.Descending)}",
+                QueryBuilder.CreateSortByQuery<GetTransactions.Response>(sortBy, false));
+        }
+        SortByQueries = sortByQueries.ToFrozenDictionary();
+    }
+
+    public static FrozenDictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; }
+    public static FrozenDictionary<string, Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>> SortByQueries { get; }
 }
