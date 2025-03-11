@@ -4,7 +4,7 @@ namespace API.Misc;
 
 public static class QueryBuilder
 {
-    public static Func<IQueryable<T>, IOrderedQueryable<T>> CreateSortByQuery<T>(string propertyName, bool ascending)
+    public static Func<IQueryable<T>, IOrderedQueryable<T>> CreateOrderQuery<T>(string propertyName, bool ascending)
     {
         // Create a parameter expression representing the input parameter of the delegate
         var parameter = Expression.Parameter(typeof(T), "x");

@@ -49,24 +49,24 @@ public static class Routing
         };
         FeaturedEndpoints = featuredEndpoints.ToFrozenDictionary();
 
-        var sortByQueries = new Dictionary<
+        var orderQueries = new Dictionary<
             string,
             Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>>(
             StringComparer.OrdinalIgnoreCase);
 
         foreach (var sortBy in availableSortOrders)
         {
-            sortByQueries.Add(
+            orderQueries.Add(
                 $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
-                QueryBuilder.CreateSortByQuery<GetTransactions.Response>(sortBy, true));
+                QueryBuilder.CreateOrderQuery<GetTransactions.Response>(sortBy, true));
 
-            sortByQueries.Add(
+            orderQueries.Add(
                 $"{sortBy}{nameof(Pagination.SortDirection.Descending)}",
-                QueryBuilder.CreateSortByQuery<GetTransactions.Response>(sortBy, false));
+                QueryBuilder.CreateOrderQuery<GetTransactions.Response>(sortBy, false));
         }
-        SortByQueries = sortByQueries.ToFrozenDictionary();
+        OrderQueries = orderQueries.ToFrozenDictionary();
     }
 
     public static FrozenDictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; }
-    public static FrozenDictionary<string, Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>> SortByQueries { get; }
+    public static FrozenDictionary<string, Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>> OrderQueries { get; }
 }

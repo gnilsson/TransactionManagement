@@ -58,8 +58,8 @@ public static class GetTransactions
                 .Skip((paginationQuery.PageNumber - 1) * paginationQuery.PageSize)
                 .Take(paginationQuery.PageSize);
 
-            var sortByQuery = Routing.SortByQueries[$"{paginationQuery.SortBy}{paginationQuery.SortDirection}"];
-            var orderedPaginated = sortByQuery(paginated).AsAsyncEnumerable();
+            var orderQuery = Routing.OrderQueries[$"{paginationQuery.SortBy}{paginationQuery.SortDirection}"];
+            var orderedPaginated = orderQuery(paginated).AsAsyncEnumerable();
 
             if (paginationQuery.Mode is Pagination.Mode.Complete)
             {
