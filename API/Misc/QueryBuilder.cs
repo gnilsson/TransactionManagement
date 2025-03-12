@@ -1,4 +1,6 @@
-﻿using System.Linq.Expressions;
+﻿using System.Collections.Concurrent;
+using System.Linq.Expressions;
+using System.Reflection;
 
 namespace API.Misc;
 
@@ -17,6 +19,7 @@ public static class QueryBuilder
 
         // Get the OrderBy or OrderByDescending method
         var methodName = ascending ? "OrderBy" : "OrderByDescending";
+
         var method = typeof(Queryable).GetMethods()
             .First(m => m.Name == methodName && m.GetParameters().Length == 2)
             .MakeGenericMethod(typeof(T), property.Type);
@@ -31,5 +34,25 @@ public static class QueryBuilder
         var compiledLambda = Expression.Lambda<Func<IQueryable<T>, IOrderedQueryable<T>>>(methodCall, sourceParameter).Compile();
 
         return compiledLambda;
+    }
+
+    public static IQueryable<T> OrderByPropertyName<T>(this IQueryable<T> source, string propertyName, bool ascending = true)
+    {
+        var parameter = Expression.Parameter(typeof(T), "x");
+
+        var property = Expression.Property(parameter, propertyName);
+
+        var selector = Expression.Lambda(property, parameter);
+
+        var method = ascending ? "OrderBy" : "OrderByDescending";
+
+        var resultExpression = Expression.Call(
+            typeof(Queryable),
+            method,
+            [typeof(T), selector.ReturnType],
+            source.Expression,
+            Expression.Quote(selector));
+
+        return source.Provider.CreateQuery<T>(resultExpression);
     }
 }

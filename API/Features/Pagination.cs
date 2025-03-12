@@ -56,7 +56,6 @@ public static class Pagination
         public int PageSize { get; init; }
         public SortDirection SortDirection { get; init; }
         public required string SortBy { get; init; }
-        //public required Delegate SortBySelector { get; init; }
         public required Mode Mode { get; init; }
     }
 

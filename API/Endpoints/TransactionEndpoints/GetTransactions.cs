@@ -1,7 +1,10 @@
-﻿using API.Database;
+﻿using API.Data;
+using API.Database;
 using API.Features;
+using API.Misc;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq.Expressions;
 using System.Net.Mime;
 using System.Text.Json;
 
@@ -37,6 +40,36 @@ public static class GetTransactions
         {
             _dbContext = appDbContext;
         }
+
+
+        // note:
+        // it is possible to gain some performance by using compiled queries
+        // but the drawback is complexity and simply less flexible because you have to define each potential query
+        // could be an adoptable pattern if done right
+
+        //private static readonly Expression<Func<Transaction, Response>> _selectExpression = t => new Response
+        //{
+        //    TransactionId = t.Id,
+        //    Amount = t.Amount,
+        //    CreatedAt = t.CreatedAt,
+        //    ModifiedAt = t.ModifiedAt
+        //};
+
+        //private static readonly Func<AppDbContext, Guid, Task<int>>
+        //    _countTransactionsByAccountIdAsync =
+        //    EF.CompileAsyncQuery((AppDbContext dbContext, Guid accountId) =>
+        //        dbContext.Transactions.AsNoTracking().Count(t => t.AccountId == accountId));
+
+        //private static readonly Func<AppDbContext, Guid, int, int, IAsyncEnumerable<Response>>
+        //    _getTransactionsByAccountIdModifiedDescendingAsync =
+        //        EF.CompileAsyncQuery((AppDbContext dbContext, Guid accountId, int skip, int take) =>
+        //            dbContext.Transactions
+        //                .AsNoTracking()
+        //                .Where(t => t.AccountId == accountId)
+        //                .OrderByDescending(x => x.ModifiedAt)
+        //                .Skip(skip)
+        //                .Take(take)
+        //                .Select(_selectExpression));
 
         public async Task<IResult> HandleAsync(Request request, HttpContext context, CancellationToken cancellationToken)
         {

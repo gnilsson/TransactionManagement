@@ -1,7 +1,9 @@
-﻿using API.Endpoints.TransactionEndpoints;
+﻿using API.Data;
+using API.Endpoints.TransactionEndpoints;
 using API.Features;
 using API.Misc;
 using System.Collections.Frozen;
+using System.Linq.Expressions;
 
 namespace API.Endpoints;
 
@@ -35,9 +37,19 @@ public static class Routing
         public const string ModifiedAt = "modifiedAt";
     }
 
+    public static class Entity<TResponse>
+    {
+        // todo: implement generic configuration
+    }
+
     static Routing()
     {
-        string[] availableSortOrders = [PropertyQueryArgumentName.CreatedAt, PropertyQueryArgumentName.ModifiedAt];
+        string[] availableSortOrders =
+        [
+            PropertyQueryArgumentName.CreatedAt,
+            PropertyQueryArgumentName.ModifiedAt
+        ];
+
         var featuredEndpoints = new Dictionary<string, FeaturedEndpointMetadata>()
         {
             [$"/{GroupName.Transaction}"] = new FeaturedEndpointMetadata
