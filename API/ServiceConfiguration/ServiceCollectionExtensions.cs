@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<CreateAccount.Endpoint>();
         services.AddScoped<GetAccountById.Endpoint>();
+        services.AddScoped<GetAccounts.Endpoint>();
 
         services.AddScoped<IdentityCallback.Endpoint>();
 

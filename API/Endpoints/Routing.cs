@@ -20,6 +20,7 @@ public static class Routing
     {
         public const string GetAccountById = nameof(AccountEndpoints.GetAccountById);
         public const string CreateAccount = nameof(AccountEndpoints.CreateAccount);
+        public const string GetAccounts = nameof(AccountEndpoints.GetAccounts);
 
         public const string CreateTransaction = nameof(TransactionEndpoints.CreateTransaction);
         public const string GetTransactionById = nameof(TransactionEndpoints.GetTransactionById);

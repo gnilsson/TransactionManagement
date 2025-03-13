@@ -22,6 +22,11 @@ public static class EndpointWebApplicationExtensions
             return await endpoint.HandleAsync(accountId, cancellationToken);
         }).WithName(Routing.EndpointName.GetAccountById);
 
+        accounts.MapGet("", async ([AsParameters] GetAccounts.Request request, HttpContext context, GetAccounts.Endpoint endpoint, CancellationToken cancellationToken) =>
+        {
+            return await endpoint.HandleAsync(request, context, cancellationToken);
+        }).WithName(Routing.EndpointName.GetAccounts);
+
 
         var transactions = app.MapGroup(Routing.GroupName.Transaction);
         transactions.MapPost("", async (CreateTransaction.Request request, CreateTransaction.Endpoint endpoint, CancellationToken cancellationToken) =>

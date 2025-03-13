@@ -41,7 +41,7 @@ public sealed class ResponseCacheMiddleware
              ct.ThrowIfCancellationRequested();
 
              var originalBody = context.Response.Body;
-             using var cachingStream = new MemoryStream();
+             await using var cachingStream = new MemoryStream();
              context.Response.Body = new ResponseCachingTeeStream(context.Response.Body, cachingStream);
 
              try
