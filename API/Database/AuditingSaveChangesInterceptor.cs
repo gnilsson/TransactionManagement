@@ -3,7 +3,6 @@ using API.ExceptionHandling;
 using API.Misc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Collections.Concurrent;
 using System.Text.Json;
 
 namespace API.Database;
@@ -11,7 +10,7 @@ namespace API.Database;
 public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 {
     private readonly IBackgroundTaskQueueWriter<IEnumerable<AuditLog>> _queueWriter;
-    private readonly ConcurrentBag<AuditLog> _auditLogs = [];
+    private readonly List<AuditLog> _auditLogs = []; // note: use concurrentbag if adding another context and sharing the interceptor
 
     public AuditingSaveChangesInterceptor(IBackgroundTaskQueueWriter<IEnumerable<AuditLog>> queueWriter)
     {
@@ -49,6 +48,8 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
 
     private static IEnumerable<AuditLog> YieldAuditLog(DbContext context)
     {
+        var utcNow = DateTime.UtcNow;
+
         foreach (var entry in context.ChangeTracker
             .Entries()
             .Where(x => x.Entity is not AuditLog && x.State is EntityState.Added or EntityState.Modified))
@@ -73,7 +74,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
                 OldValues = oldValues is not null ? JsonSerializer.Serialize(oldValues) : null,
                 NewValues = JsonSerializer.Serialize(newValues),
                 UserId = "system", // Replace with actual user ID if available
-                Timestamp = DateTime.UtcNow
+                Timestamp = utcNow,
             };
 
             yield return auditLog;

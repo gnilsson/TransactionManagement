@@ -1,5 +1,6 @@
 ﻿using API.Data;
 using API.Database;
+using API.Endpoints;
 using API.Endpoints.AccountEndpoints;
 using API.Endpoints.IdentityEndpoints;
 using API.Endpoints.TransactionEndpoints;
@@ -62,6 +63,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<GetAccounts.Endpoint>();
 
         services.AddScoped<IdentityCallback.Endpoint>();
+
+        Routing.Initialize();
 
         return services;
     }

@@ -3,7 +3,6 @@ using API.Endpoints.TransactionEndpoints;
 using API.Features;
 using API.Misc;
 using System.Collections.Frozen;
-using System.Linq.Expressions;
 
 namespace API.Endpoints;
 
@@ -40,7 +39,32 @@ public static class Routing
 
     public static class Entity<TResponse>
     {
-        // todo: implement generic configuration
+        static Entity()
+        {
+            string[] availableSortOrders =
+            [
+                PropertyQueryArgumentName.CreatedAt,
+                PropertyQueryArgumentName.ModifiedAt
+            ];
+
+            var orderQueries = new Dictionary<
+                string,
+                Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>>(
+                StringComparer.OrdinalIgnoreCase);
+
+            foreach (var sortBy in availableSortOrders)
+            {
+                orderQueries.Add(
+                    $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
+                    QueryBuilder.CreateOrderQuery<TResponse>(sortBy, true));
+
+                orderQueries.Add(
+                    $"{sortBy}{nameof(Pagination.SortDirection.Descending)}",
+                    QueryBuilder.CreateOrderQuery<TResponse>(sortBy, false));
+            }
+            OrderQueries = orderQueries.ToFrozenDictionary();
+        }
+        public static FrozenDictionary<string, Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>> OrderQueries { get; }
     }
 
     static Routing()
@@ -61,25 +85,13 @@ public static class Routing
             }
         };
         FeaturedEndpoints = featuredEndpoints.ToFrozenDictionary();
-
-        var orderQueries = new Dictionary<
-            string,
-            Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>>(
-            StringComparer.OrdinalIgnoreCase);
-
-        foreach (var sortBy in availableSortOrders)
-        {
-            orderQueries.Add(
-                $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
-                QueryBuilder.CreateOrderQuery<GetTransactions.Response>(sortBy, true));
-
-            orderQueries.Add(
-                $"{sortBy}{nameof(Pagination.SortDirection.Descending)}",
-                QueryBuilder.CreateOrderQuery<GetTransactions.Response>(sortBy, false));
-        }
-        OrderQueries = orderQueries.ToFrozenDictionary();
     }
 
     public static FrozenDictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; }
-    public static FrozenDictionary<string, Func<IQueryable<GetTransactions.Response>, IOrderedQueryable<GetTransactions.Response>>> OrderQueries { get; }
+
+    public static void Initialize()
+    {
+        _ = Entity<GetTransactions.Response>.OrderQueries;
+        _ = Entity<Account>.OrderQueries;
+    }
 }

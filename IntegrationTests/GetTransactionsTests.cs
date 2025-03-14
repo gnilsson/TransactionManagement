@@ -1,5 +1,6 @@
 ﻿using API.Endpoints;
 using API.Endpoints.TransactionEndpoints;
+using API.Features;
 using FluentAssertions;
 using IntegrationTests.Setup;
 using Microsoft.EntityFrameworkCore;
@@ -48,7 +49,7 @@ public sealed class GetTransactionsTests : IClassFixture<IntegrationTestsFixture
         getTransactionsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         // Act
-        var completeResponse = await getTransactionsResponse.Content.ReadFromJsonAsync<GetTransactions.CompleteResponse>(EndpointDefaults.JsonSerializerOptions);
+        var completeResponse = await getTransactionsResponse.Content.ReadFromJsonAsync<Pagination.CompleteResponse<GetTransactions.Response>>(EndpointDefaults.JsonSerializerOptions);
 
         // Assert
         completeResponse.Should().NotBeNull();

@@ -52,9 +52,9 @@ public static class Pagination
 
     public sealed class Query
     {
-        public int PageNumber { get; init; }
-        public int PageSize { get; init; }
-        public SortDirection SortDirection { get; init; }
+        public required int PageNumber { get; init; }
+        public required int PageSize { get; init; }
+        public required SortDirection SortDirection { get; init; }
         public required string SortBy { get; init; }
         public required Mode Mode { get; init; }
     }
@@ -67,6 +67,12 @@ public static class Pagination
         public int TotalPages => (int)Math.Ceiling(TotalCount / (double)PageSize);
         public bool HasPreviousPage => PageNumber > 1;
         public bool HasNextPage => PageNumber < TotalPages;
+    }
+
+    public sealed class CompleteResponse<TResponse>
+    {
+        public required Data Metadata { get; init; }
+        public required IAsyncEnumerable<TResponse> Items { get; init; }
     }
 
     public sealed class RequestBindingMiddleware
@@ -95,7 +101,6 @@ public static class Pagination
                 SortBy = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
                 ? sb
                 : metadata.AvailableSortOrders.First(),
-                //SortBySelector = Routing.CreateSortBySelectorDelegate()
                 Mode = Enum.TryParse<Mode>(mode, true, out var m) ? m : Mode.Streaming
             };
             context.Items[Defaults.QueryKey] = paginationQuery;
