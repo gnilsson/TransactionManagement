@@ -2,7 +2,9 @@
 using API.Endpoints.AccountEndpoints;
 using System.Collections.Frozen;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace API.Endpoints;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 public static class RoutingNames
 {
@@ -38,7 +40,7 @@ public static class RoutingNames
 
     public static class ArgumentPropertyMaps
     {
-        public static FrozenDictionary<string, string> OrderingQuery { get; } = new Dictionary<string, string>()
+        public static FrozenDictionary<string, string> OrderingQueries { get; } = new Dictionary<string, string>()
         {
             [OrderingQueryArgument.CreatedAt] = nameof(ITemporalEntity.CreatedAt),
             [OrderingQueryArgument.ModifiedAt] = nameof(ITemporalEntity.ModifiedAt),

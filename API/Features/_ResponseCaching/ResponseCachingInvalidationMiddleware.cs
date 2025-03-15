@@ -3,14 +3,16 @@ using API.ExceptionHandling;
 using Microsoft.Extensions.Caching.Hybrid;
 using System.Text.Json;
 
-namespace API.Features.ResponseCaching;
+#pragma warning disable IDE0130 // Namespace does not match folder structure
+namespace API.Features;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
-public sealed class ResponseCacheInvalidationMiddleware
+public sealed class ResponseCachingInvalidationMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly HybridCache _cache;
 
-    public ResponseCacheInvalidationMiddleware(RequestDelegate next, HybridCache cache)
+    public ResponseCachingInvalidationMiddleware(RequestDelegate next, HybridCache cache)
     {
         _next = next;
         _cache = cache;
@@ -40,7 +42,7 @@ public sealed class ResponseCacheInvalidationMiddleware
             var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
             var reader = new Utf8JsonReader(buffer);
             var foreignId = ReadForeignIdProperty(reader, metadata.CachingStrategy.ArgumentName!); // <
-            var tag = string.Format(Caching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
+            var tag = string.Format(ResponseCaching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
 
             await _cache.RemoveByTagAsync(tag, cancellationToken);
         }

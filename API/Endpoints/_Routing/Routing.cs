@@ -5,28 +5,27 @@ using API.Misc;
 using System.Collections.Frozen;
 using System.Reflection;
 
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace API.Endpoints;
+#pragma warning restore IDE0130 // Namespace does not match folder structure
 
 public static class Routing
 {
-    private static IEnumerable<string> DefaultSortOrders
-    {
-        get =>
-        [
-            RoutingNames.OrderingQueryArgument.CreatedAt,
-            RoutingNames.OrderingQueryArgument.ModifiedAt,
-        ];
-    }
+    private static IEnumerable<string> DefaultSortOrders { get; } =
+    [
+        RoutingNames.OrderingQueryArgument.CreatedAt,
+        RoutingNames.OrderingQueryArgument.ModifiedAt,
+    ];
 
     private sealed class Account : IEntityRouting
     {
         public IEnumerable<string>? SortOrders { get; } = [RoutingNames.OrderingQueryArgument.TransactionCount];
 
-        public string GroupName { get; } = RoutingNames.Group.Account;
+        public string GroupName => RoutingNames.Group.Account;
 
-        public CachingStrategyConfig CachingStrategy { get; } = new()
+        public ResponseCaching.StrategyConfig CachingStrategy { get; } = new()
         {
-            Variant = CachingStrategyVariant.Default
+            Variant = ResponseCaching.StrategyVariant.Default
         };
 
         public Type ResponseType { get; } = typeof(GetAccounts.Response);
@@ -36,15 +35,15 @@ public static class Routing
     {
         public IEnumerable<string>? SortOrders { get; }
 
-        public string GroupName { get; } = RoutingNames.Group.Transaction;
+        public string GroupName => RoutingNames.Group.Transaction;
 
-        public CachingStrategyConfig CachingStrategy { get; } = new()
+        public ResponseCaching.StrategyConfig CachingStrategy { get; } = new()
         {
-            Variant = CachingStrategyVariant.ForeignId,
+            Variant = ResponseCaching.StrategyVariant.ForeignId,
             ArgumentName = RoutingNames.RequestArgument.AccountId
         };
 
-        public Type ResponseType { get; } = typeof(GetTransactions.Response);
+        public Type ResponseType => typeof(GetTransactions.Response);
     }
 
     public static class Entity<TResponse>
@@ -55,7 +54,7 @@ public static class Routing
 
             foreach (var sortOrder in sortOrders)
             {
-                var sortBy = RoutingNames.ArgumentPropertyMaps.OrderingQuery[sortOrder];
+                var sortBy = RoutingNames.ArgumentPropertyMaps.OrderingQueries[sortOrder];
 
                 orderQueries.Add(
                     $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
@@ -77,7 +76,7 @@ public static class Routing
             .Where(t => t.IsClass && t.GetInterfaces().Contains(typeof(IEntityRouting)))
             .Select(t => (IEntityRouting)Activator.CreateInstance(t)!);
 
-        var featuredEndpoints = new Dictionary<string, FeaturedEndpointMetadata>();
+        var getEndpointMetadatas = new Dictionary<string, GetEndpointMetadata>();
 
         foreach (var routing in entityRoutings)
         {
@@ -90,37 +89,17 @@ public static class Routing
                 .GetMethod(nameof(Entity<>.Initialize))!
                 .Invoke(null, [sortOrders]);
 
-            featuredEndpoints.Add(
+            getEndpointMetadatas.Add(
                 $"/{routing.GroupName}",
-                new FeaturedEndpointMetadata
+                new GetEndpointMetadata
                 {
                     GroupName = routing.GroupName,
                     AvailableSortOrders = FrozenSet.Create(sortOrders),
                     CachingStrategy = routing.CachingStrategy
                 });
         }
-        FeaturedEndpoints = featuredEndpoints.ToFrozenDictionary();
+        FeaturedEndpoints = getEndpointMetadatas.ToFrozenDictionary();
     }
 
-    public static FrozenDictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; }
-}
-
-public interface IEntityRouting
-{
-    string GroupName { get; }
-    IEnumerable<string>? SortOrders { get; }
-    CachingStrategyConfig CachingStrategy { get; }
-    Type ResponseType { get; }
-}
-
-public sealed class CachingStrategyConfig
-{
-    public CachingStrategyVariant Variant { get; init; } = CachingStrategyVariant.Default;
-    public string? ArgumentName { get; init; }
-}
-
-public enum CachingStrategyVariant : byte
-{
-    Default,
-    ForeignId
+    public static FrozenDictionary<string, GetEndpointMetadata> FeaturedEndpoints { get; }
 }

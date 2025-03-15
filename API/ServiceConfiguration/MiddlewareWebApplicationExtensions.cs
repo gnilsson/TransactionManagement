@@ -1,7 +1,6 @@
 ﻿using API.Endpoints;
 using API.ExceptionHandling;
 using API.Features;
-using API.Features.ResponseCaching;
 using API.Logging;
 
 namespace API.ServiceConfiguration;
@@ -37,7 +36,7 @@ public static class MiddlewareWebApplicationExtensions
         }, appBuilder =>
         {
             appBuilder.UseMiddleware<Pagination.RequestBindingMiddleware>();
-            appBuilder.UseMiddleware<ResponseCacheMiddleware>();
+            appBuilder.UseMiddleware<ResponseCachingMiddleware>();
         });
 
         app.UseWhen(context =>
@@ -47,7 +46,7 @@ public static class MiddlewareWebApplicationExtensions
             && context.Request.Method == HttpMethods.Post;
         }, appBuilder =>
         {
-            appBuilder.UseMiddleware<ResponseCacheInvalidationMiddleware>();
+            appBuilder.UseMiddleware<ResponseCachingInvalidationMiddleware>();
         });
 
         return app;

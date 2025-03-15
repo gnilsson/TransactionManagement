@@ -102,7 +102,7 @@ public static class Pagination
                 PageNumber = int.TryParse(pageNumber, out var pn) ? pn : 1,
                 PageSize = int.TryParse(pageSize, out var ps) ? ps : Defaults.PageSize,
                 SortDirection = Enum.TryParse<SortDirection>(sortDirection, true, out var sd) ? sd : SortDirection.Ascending,
-                SortBy = RoutingNames.ArgumentPropertyMaps.OrderingQuery[sortOrder],
+                SortBy = RoutingNames.ArgumentPropertyMaps.OrderingQueries[sortOrder],
                 Mode = Enum.TryParse<Mode>(mode, true, out var m) ? m : Mode.Streaming
             };
             context.Items[Defaults.QueryKey] = paginationQuery;
