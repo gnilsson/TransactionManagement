@@ -1,7 +1,5 @@
 ﻿using API.Endpoints;
-using API.ExceptionHandling;
 using Microsoft.Extensions.Caching.Hybrid;
-using System.Text.Json;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace API.Features;
@@ -25,40 +23,29 @@ public sealed class ResponseCachingInvalidationMiddleware
     {
         var cancellationToken = context.RequestAborted;
 
-        // Enable buffering for the request body
-        context.Request.EnableBuffering();
+        var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
 
-        // Read the request body as a byte array
-        var buffer = new byte[context.Request.ContentLength.GetValueOrDefault()];
-        await context.Request.Body.ReadExactlyAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+        byte[]? buffer = null;
+        if (!metadata.CachingStrategy.VariantIsDefault)
+        {
+            // Enable buffering for the request body
+            context.Request.EnableBuffering();
 
-        // Reset the request body stream position so it can be read again by the next middleware
-        context.Request.Body.Position = 0;
+            // Read the request body as a byte array
+            buffer = new byte[context.Request.ContentLength.GetValueOrDefault()];
+            await context.Request.Body.ReadExactlyAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+
+            // Reset the request body stream position so it can be read again by the next middleware
+            context.Request.Body.Position = 0;
+        }
 
         await _next(context);
 
         if (context.Response.StatusCode is StatusCodes.Status201Created)
         {
-            var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
-            var reader = new Utf8JsonReader(buffer);
-            var foreignId = ReadForeignIdProperty(reader, metadata.CachingStrategy.ArgumentName!); // <
-            var tag = string.Format(ResponseCaching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
+            var cacheTag = ResponseCaching.CreateTag(metadata, buffer);
 
-            await _cache.RemoveByTagAsync(tag, cancellationToken);
+            await _cache.RemoveByTagAsync(cacheTag, CancellationToken.None);
         }
-    }
-
-    private static string ReadForeignIdProperty(Utf8JsonReader reader, string foreignIdArgumentName)
-    {
-        while (reader.Read())
-        {
-            if (reader.TokenType is JsonTokenType.PropertyName && reader.GetString() == foreignIdArgumentName)
-            {
-                reader.Read();
-                return reader.GetString()!;
-            }
-        }
-        ThrowHelper.Throw("The foreign ID property was not found in the request body.");
-        return null!; // note: interesting that the DoesNotReturn attribute doesnt work when its applied last
     }
 }

@@ -1,5 +1,4 @@
-﻿using API.Endpoints;
-using Microsoft.Extensions.Caching.Hybrid;
+﻿using Microsoft.Extensions.Caching.Hybrid;
 using System.Net.Mime;
 
 #pragma warning disable IDE0130 // Namespace does not match folder structure
@@ -23,19 +22,7 @@ public sealed class ResponseCachingMiddleware
     {
         var cancellationToken = context.RequestAborted;
 
-        var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
-        var foreignId = context.Request.Query[metadata.CachingStrategy.ArgumentName!].ToString(); // <
-        var paginationQuery = (Pagination.Query)context.Items[Pagination.Defaults.QueryKey]!;
-
-        var cacheKey = string.Format(
-            ResponseCaching.Keys.PaginatedOnForeignId,
-            metadata.GroupName,
-            foreignId,
-            paginationQuery.PageNumber,
-            paginationQuery.PageSize,
-            paginationQuery.SortBy,
-            paginationQuery.SortDirection,
-            paginationQuery.Mode);
+        var (cacheKey, cacheTag) = ResponseCaching.CreateKeyAndTag(context);
 
         var cachedResponse = await _cache.GetOrCreateAsync(cacheKey, async ct =>
          {
@@ -57,7 +44,7 @@ public sealed class ResponseCachingMiddleware
              cachingStream.Seek(0, SeekOrigin.Begin);
              return await new StreamReader(cachingStream).ReadToEndAsync(CancellationToken.None);
          },
-         tags: [string.Format(ResponseCaching.Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId)],
+         tags: [cacheTag],
          cancellationToken: cancellationToken);
 
         if (!context.Response.HasStarted)
