@@ -19,6 +19,8 @@ public sealed class ResponseCachingInvalidationMiddleware
     // note:
     // it might be a good idea to have a request binding middleware in the previous step
     // that way we wont read from the request body twice
+    // but the implementation needs to override the default implementation
+    // which will require some validation logic
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;
@@ -49,3 +51,27 @@ public sealed class ResponseCachingInvalidationMiddleware
         }
     }
 }
+
+//public sealed class PostRequestBindingMiddleware
+//{
+//    private readonly RequestDelegate _next;
+//    public PostRequestBindingMiddleware(RequestDelegate next)
+//    {
+//        _next = next;
+//    }
+//    public async Task InvokeAsync(HttpContext context)
+//    {
+//        if (context.Request.Method is HttpMethod.Post)
+//        {
+//            // Enable buffering for the request body
+//            context.Request.EnableBuffering();
+//            // Read the request body as a byte array
+//            byte[] buffer = new byte[context.Request.ContentLength.GetValueOrDefault()];
+//            await context.Request.Body.ReadExactlyAsync(buffer.AsMemory(0, buffer.Length), context.RequestAborted);
+//            // Reset the request body stream position so it can be read again by the next middleware
+//            context.Request.Body.Position = 0;
+//            context.Items.Add("RequestBody", buffer);
+//        }
+//        await _next(context);
+//    }
+//}

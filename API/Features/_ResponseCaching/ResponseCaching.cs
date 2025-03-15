@@ -79,7 +79,7 @@ public static class ResponseCaching
         return null!;
     }
 
-    public static string CreateTag(GetEndpointMetadata metadata, byte[]? requestBodyBuffer = null)
+    public static string CreateTag(GetEndpointMetadata metadata, byte[]? requestBodyBuffer)
     {
         if (metadata.CachingStrategy.VariantIsDefault)
         {
