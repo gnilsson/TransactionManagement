@@ -13,7 +13,6 @@ public sealed class Account : IIdentifiableEntity, ITemporalEntity, IRowVersione
 
     public ICollection<Transaction> Transactions { get; } = [];
 
-
     public DateTime CreatedAt { get; }
 
     public DateTime ModifiedAt { get; set; }

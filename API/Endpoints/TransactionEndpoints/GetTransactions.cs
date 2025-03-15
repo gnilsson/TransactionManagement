@@ -10,7 +10,7 @@ public static class GetTransactions
 {
     public sealed class Request : Pagination.Request
     {
-        [FromQuery(Name = Routing.PropertyArgumentName.AccountId)]
+        [FromQuery(Name = RoutingNames.RequestArgument.AccountId)]
         public Guid AccountId { get; init; }
     }
 

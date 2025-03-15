@@ -22,9 +22,8 @@ public sealed class ResponseCacheMiddleware
         var cancellationToken = context.RequestAborted;
 
         var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
-        var foreignId = context.Request.Query[metadata.ForeignIdArgumentName].ToString();
-
-        var paginationQuery = (context.Items[Pagination.Defaults.QueryKey] as Pagination.Query)!;
+        var foreignId = context.Request.Query[metadata.CachingStrategy.ArgumentName!].ToString(); // <
+        var paginationQuery = (Pagination.Query)context.Items[Pagination.Defaults.QueryKey]!;
 
         var cacheKey = string.Format(
             Caching.Keys.PaginatedOnForeignId,

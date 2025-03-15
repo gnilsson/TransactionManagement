@@ -48,7 +48,7 @@ public static class CreateTransaction
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             return Results.CreatedAtRoute(
-                Routing.EndpointName.GetTransactionById,
+                RoutingNames.Endpoint.GetTransactionById,
                 new { transactionId = transaction.Id },
                 new GetTransactionById.Response
                 {

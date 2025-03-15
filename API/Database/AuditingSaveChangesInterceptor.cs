@@ -20,7 +20,7 @@ public sealed class AuditingSaveChangesInterceptor : SaveChangesInterceptor
     public override ValueTask<InterceptionResult<int>> SavingChangesAsync(DbContextEventData eventData, InterceptionResult<int> result, CancellationToken cancellationToken = default)
     {
         var context = eventData.Context;
-        ThrowHelper.ThrowIfNull(context, "Context not found.");
+        ThrowHelper.ThrowIfNull(context);
 
         foreach (var auditLog in YieldAuditLog(context))
         {

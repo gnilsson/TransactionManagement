@@ -28,7 +28,7 @@ public static class CreateAccount
             await _appDbContext.SaveChangesAsync(cancellationToken);
 
             return Results.CreatedAtRoute(
-                Routing.EndpointName.GetAccountById,
+                RoutingNames.Endpoint.GetAccountById,
                 new { accountId = account.Id },
                 new GetAccountById.Response { Id = account.Id, Balance = account.Balance });
         }

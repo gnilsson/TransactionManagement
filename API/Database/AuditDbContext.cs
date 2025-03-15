@@ -12,12 +12,12 @@ public sealed class AuditDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("audit");
+
         var auditLog = modelBuilder.Entity<AuditLog>(entity =>
         {
             entity.Property(a => a.Id).ValueGeneratedOnAdd();
             entity.Property(a => a.Timestamp).HasDefaultValueSql("datetime('now')");
         });
-
-        modelBuilder.HasDefaultSchema("audit");
     }
 }

@@ -16,15 +16,18 @@ public static class ThrowHelper
         static void ThrowArgumentNullException(string? paramName) => throw new ArgumentNullException(paramName);
     }
 
-    public static void Throw(string? message = null)
+    public static void ThrowIf([DoesNotReturnIf(true)] bool condition, string? message = null)
     {
-        if (message is null)
+        if (condition)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(message);
         }
-        throw new InvalidOperationException(message);
     }
 
+    [DoesNotReturn]
+    public static void Throw(string? message = null) => throw new InvalidOperationException(message);
+
+    [DoesNotReturn]
     public static void Throw<TException>(string? message = null) where TException : Exception, new()
     {
         if (message is null)

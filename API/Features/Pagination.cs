@@ -93,14 +93,16 @@ public static class Pagination
             var mode = context.Request.Query[ArgumentName.Mode].FirstOrDefault();
 
             var metadata = Routing.FeaturedEndpoints[context.Request.Path.Value!];
+            var sortOrder = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
+                ? sb
+                : metadata.AvailableSortOrders.First();
+
             var paginationQuery = new Query
             {
                 PageNumber = int.TryParse(pageNumber, out var pn) ? pn : 1,
                 PageSize = int.TryParse(pageSize, out var ps) ? ps : Defaults.PageSize,
                 SortDirection = Enum.TryParse<SortDirection>(sortDirection, true, out var sd) ? sd : SortDirection.Ascending,
-                SortBy = sortBy is not null && metadata.AvailableSortOrders.TryGetValue(sortBy, out var sb)
-                ? sb
-                : metadata.AvailableSortOrders.First(),
+                SortBy = RoutingNames.ArgumentPropertyMaps.OrderingQuery[sortOrder],
                 Mode = Enum.TryParse<Mode>(mode, true, out var m) ? m : Mode.Streaming
             };
             context.Items[Defaults.QueryKey] = paginationQuery;

@@ -11,38 +11,38 @@ public static class EndpointWebApplicationExtensions
 {
     public static WebApplication MapEndpoints(this WebApplication app, IConfiguration configuration)
     {
-        var accounts = app.MapGroup(Routing.GroupName.Account);
+        var accounts = app.MapGroup(RoutingNames.Group.Account);
         accounts.MapPost("", async (CreateAccount.Request _, CreateAccount.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(cancellationToken);
-        }).WithName(Routing.EndpointName.CreateAccount);
+        }).WithName(RoutingNames.Endpoint.CreateAccount);
 
         accounts.MapGet("{accountId}", async (Guid accountId, GetAccountById.Endpoint endpoint, HttpContext context, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(accountId, cancellationToken);
-        }).WithName(Routing.EndpointName.GetAccountById);
+        }).WithName(RoutingNames.Endpoint.GetAccountById);
 
         accounts.MapGet("", async ([AsParameters] GetAccounts.Request request, HttpContext context, GetAccounts.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(request, context, cancellationToken);
-        }).WithName(Routing.EndpointName.GetAccounts);
+        }).WithName(RoutingNames.Endpoint.GetAccounts);
 
 
-        var transactions = app.MapGroup(Routing.GroupName.Transaction);
+        var transactions = app.MapGroup(RoutingNames.Group.Transaction);
         transactions.MapPost("", async (CreateTransaction.Request request, CreateTransaction.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(request, cancellationToken);
-        }).WithName(Routing.EndpointName.CreateTransaction);
+        }).WithName(RoutingNames.Endpoint.CreateTransaction);
 
         transactions.MapGet("{transactionId}", async (Guid transactionId, GetTransactionById.Endpoint endpoint, HttpContext context, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(transactionId, cancellationToken);
-        }).WithName(Routing.EndpointName.GetTransactionById);
+        }).WithName(RoutingNames.Endpoint.GetTransactionById);
 
         transactions.MapGet("", async ([AsParameters] GetTransactions.Request request, HttpContext context, GetTransactions.Endpoint endpoint, CancellationToken cancellationToken) =>
         {
             return await endpoint.HandleAsync(request, context, cancellationToken);
-        }).WithName(Routing.EndpointName.GetTransactions);
+        }).WithName(RoutingNames.Endpoint.GetTransactions);
 
         app.MapIdentityEndpoints(configuration);
 

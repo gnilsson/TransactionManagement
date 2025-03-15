@@ -1,59 +1,62 @@
-﻿using API.Data;
+﻿using API.Endpoints.AccountEndpoints;
 using API.Endpoints.TransactionEndpoints;
 using API.Features;
 using API.Misc;
 using System.Collections.Frozen;
+using System.Reflection;
 
 namespace API.Endpoints;
 
 public static class Routing
 {
-    public static class GroupName
+    private static IEnumerable<string> DefaultSortOrders
     {
-        public const string Account = "accounts";
-        public const string Transaction = "transactions";
-        public const string Identity = "identity";
+        get =>
+        [
+            RoutingNames.OrderingQueryArgument.CreatedAt,
+            RoutingNames.OrderingQueryArgument.ModifiedAt,
+        ];
     }
 
-    public static class EndpointName
+    private sealed class Account : IEntityRouting
     {
-        public const string GetAccountById = nameof(AccountEndpoints.GetAccountById);
-        public const string CreateAccount = nameof(AccountEndpoints.CreateAccount);
-        public const string GetAccounts = nameof(AccountEndpoints.GetAccounts);
+        public IEnumerable<string>? SortOrders { get; } = [RoutingNames.OrderingQueryArgument.TransactionCount];
 
-        public const string CreateTransaction = nameof(TransactionEndpoints.CreateTransaction);
-        public const string GetTransactionById = nameof(TransactionEndpoints.GetTransactionById);
-        public const string GetTransactions = nameof(TransactionEndpoints.GetTransactions);
+        public string GroupName { get; } = RoutingNames.Group.Account;
+
+        public CachingStrategyConfig CachingStrategy { get; } = new()
+        {
+            Variant = CachingStrategyVariant.Default
+        };
+
+        public Type ResponseType { get; } = typeof(GetAccounts.Response);
     }
 
-    public static class PropertyArgumentName
+    private sealed class Transaction : IEntityRouting
     {
-        public const string AccountId = "account_id";
-    }
+        public IEnumerable<string>? SortOrders { get; }
 
-    public static class PropertyQueryArgumentName
-    {
-        public const string CreatedAt = "createdAt";
-        public const string ModifiedAt = "modifiedAt";
+        public string GroupName { get; } = RoutingNames.Group.Transaction;
+
+        public CachingStrategyConfig CachingStrategy { get; } = new()
+        {
+            Variant = CachingStrategyVariant.ForeignId,
+            ArgumentName = RoutingNames.RequestArgument.AccountId
+        };
+
+        public Type ResponseType { get; } = typeof(GetTransactions.Response);
     }
 
     public static class Entity<TResponse>
     {
-        static Entity()
+        public static void Initialize(IEnumerable<string> sortOrders)
         {
-            string[] availableSortOrders =
-            [
-                PropertyQueryArgumentName.CreatedAt,
-                PropertyQueryArgumentName.ModifiedAt
-            ];
+            var orderQueries = new Dictionary<string, Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>>();
 
-            var orderQueries = new Dictionary<
-                string,
-                Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>>(
-                StringComparer.OrdinalIgnoreCase);
-
-            foreach (var sortBy in availableSortOrders)
+            foreach (var sortOrder in sortOrders)
             {
+                var sortBy = RoutingNames.ArgumentPropertyMaps.OrderingQuery[sortOrder];
+
                 orderQueries.Add(
                     $"{sortBy}{nameof(Pagination.SortDirection.Ascending)}",
                     QueryBuilder.CreateOrderQuery<TResponse>(sortBy, true));
@@ -64,34 +67,60 @@ public static class Routing
             }
             OrderQueries = orderQueries.ToFrozenDictionary();
         }
-        public static FrozenDictionary<string, Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>> OrderQueries { get; }
+
+        public static FrozenDictionary<string, Func<IQueryable<TResponse>, IOrderedQueryable<TResponse>>> OrderQueries { get; private set; } = default!;
     }
 
     static Routing()
     {
-        string[] availableSortOrders =
-        [
-            PropertyQueryArgumentName.CreatedAt,
-            PropertyQueryArgumentName.ModifiedAt
-        ];
+        var entityRoutings = typeof(Routing).GetNestedTypes(BindingFlags.Instance | BindingFlags.NonPublic)
+            .Where(t => t.IsClass && t.GetInterfaces().Contains(typeof(IEntityRouting)))
+            .Select(t => (IEntityRouting)Activator.CreateInstance(t)!);
 
-        var featuredEndpoints = new Dictionary<string, FeaturedEndpointMetadata>()
+        var featuredEndpoints = new Dictionary<string, FeaturedEndpointMetadata>();
+
+        foreach (var routing in entityRoutings)
         {
-            [$"/{GroupName.Transaction}"] = new FeaturedEndpointMetadata
-            {
-                GroupName = GroupName.Transaction,
-                ForeignIdArgumentName = PropertyArgumentName.AccountId,
-                AvailableSortOrders = FrozenSet.Create<string>(availableSortOrders),
-            }
-        };
+            string[] sortOrders = routing.SortOrders is null
+                ? [.. DefaultSortOrders]
+                : [.. DefaultSortOrders, .. routing.SortOrders];
+
+            typeof(Entity<>)
+                .MakeGenericType(routing.ResponseType)
+                .GetMethod(nameof(Entity<>.Initialize))!
+                .Invoke(null, [sortOrders]);
+
+            featuredEndpoints.Add(
+                $"/{routing.GroupName}",
+                new FeaturedEndpointMetadata
+                {
+                    GroupName = routing.GroupName,
+                    AvailableSortOrders = FrozenSet.Create(sortOrders),
+                    CachingStrategy = routing.CachingStrategy
+                });
+        }
         FeaturedEndpoints = featuredEndpoints.ToFrozenDictionary();
     }
 
     public static FrozenDictionary<string, FeaturedEndpointMetadata> FeaturedEndpoints { get; }
+}
 
-    public static void Initialize()
-    {
-        _ = Entity<GetTransactions.Response>.OrderQueries;
-        _ = Entity<Account>.OrderQueries;
-    }
+public interface IEntityRouting
+{
+    string GroupName { get; }
+    IEnumerable<string>? SortOrders { get; }
+    CachingStrategyConfig CachingStrategy { get; }
+    Type ResponseType { get; }
+}
+
+public sealed class CachingStrategyConfig
+{
+    public CachingStrategyVariant Variant { get; init; } = CachingStrategyVariant.Default;
+    public string? ArgumentName { get; init; }
+}
+
+public enum CachingStrategyVariant : byte
+{
+    Default,
+    ForeignId
 }

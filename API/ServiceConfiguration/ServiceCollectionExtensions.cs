@@ -64,7 +64,8 @@ public static class ServiceCollectionExtensions
 
         services.AddScoped<IdentityCallback.Endpoint>();
 
-        Routing.Initialize();
+        // Invoking the static constructor of the Routing class
+        typeof(Routing).TypeInitializer?.Invoke(null, null);
 
         return services;
     }
