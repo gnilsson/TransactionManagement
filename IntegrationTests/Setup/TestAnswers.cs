@@ -5,4 +5,5 @@ public sealed class TestAnswers
     public required Guid UserId { get; init; }
     public required Guid[] AccountIds { get; init; }
     public required int AmountOfTransactions { get; init; }
+    public required int AmountOfAccounts { get; init; }
 }

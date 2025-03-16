@@ -16,10 +16,7 @@ public abstract class GetEndpoint<TEntity, TRequest, TResponse> where TEntity : 
         _dbContext = dbContext;
     }
 
-    public async Task<IResult> HandleAsync(
-        TRequest request,
-        HttpContext context,
-        CancellationToken cancellationToken)
+    public async Task<IResult> HandleAsync(TRequest request, HttpContext context, CancellationToken cancellationToken)
     {
         var queryable = _dbContext
             .Set<TEntity>()

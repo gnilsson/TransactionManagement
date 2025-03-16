@@ -1,4 +1,5 @@
 ﻿using API.Endpoints;
+using API.Endpoints.AccountEndpoints;
 using API.Endpoints.TransactionEndpoints;
 using API.Features;
 using FluentAssertions;
@@ -15,12 +16,14 @@ public sealed class GetTransactionsTests : IClassFixture<IntegrationTestsFixture
     private readonly HttpClient _client;
     private readonly Guid _accountId;
     private readonly int _amountOfTransactions;
+    private readonly int _amountOfAccounts;
 
     public GetTransactionsTests(IntegrationTestsFixture fixture)
     {
         _client = fixture.Client;
         _accountId = fixture.TestAnswers.AccountIds[0];
         _amountOfTransactions = fixture.TestAnswers.AmountOfTransactions;
+        _amountOfAccounts = fixture.TestAnswers.AmountOfAccounts;
     }
 
     [Fact]
@@ -91,6 +94,24 @@ public sealed class GetTransactionsTests : IClassFixture<IntegrationTestsFixture
 
         // Assert
         items.Should().HaveCount(_amountOfTransactions);
+        items.Should().BeInDescendingOrder(t => t!.ModifiedAt);
+    }
+
+    [Fact]
+    public async Task CanGetAccounts_SortedByModifiedAtDescending()
+    {
+        // Arrange
+        var getTransactionsResponse = await _client.GetAsync($"/accounts?sort_by=modifiedAt&sort_direction=descending");
+        getTransactionsResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        // Act
+        var responseStream = await getTransactionsResponse.Content.ReadAsStreamAsync();
+        var items = await JsonSerializer
+            .DeserializeAsyncEnumerable<GetAccounts.Response>(responseStream, topLevelValues: true, EndpointDefaults.JsonSerializerOptions)
+            .ToArrayAsync();
+
+        // Assert
+        items.Should().HaveCount(_amountOfAccounts);
         items.Should().BeInDescendingOrder(t => t!.ModifiedAt);
     }
 }

@@ -66,12 +66,14 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
 
     private static async Task<TestAnswers> SeedTestDataAsync(AppDbContext dbContext)
     {
-        // Add test data to the database
         var userId = Guid.NewGuid();
         var user = new User { Id = userId, Username = "aa", Role = "admin" };
-        var account = new Account { Id = Guid.NewGuid(), Balance = 1000, UserId = userId };
+        var account = new Account { Id = Guid.NewGuid(), Balance = 1000, UserId = userId, ModifiedAt = DateTime.UtcNow.AddHours(Random.Shared.Next(0, 100)) };
+        var account1 = new Account { Id = Guid.NewGuid(), Balance = 1000, UserId = userId, ModifiedAt = DateTime.UtcNow.AddHours(Random.Shared.Next(0, 100)) };
+        var account2 = new Account { Id = Guid.NewGuid(), Balance = 1000, UserId = userId, ModifiedAt = DateTime.UtcNow.AddHours(Random.Shared.Next(0, 100)) };
+
         dbContext.Users.Add(user);
-        dbContext.Accounts.Add(account);
+        dbContext.Accounts.AddRange(account, account1, account2);
 
         var amountOfTransactions = 5;
         for (int i = 0; i < amountOfTransactions; i++)
@@ -81,7 +83,7 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
                 Id = Guid.NewGuid(),
                 AccountId = account.Id,
                 Amount = 200,
-                ModifiedAt = DateTime.UtcNow.AddHours(Random.Shared.Next(i, 100))
+                ModifiedAt = DateTime.UtcNow.AddHours(Random.Shared.Next(0, 100))
             });
         }
 
@@ -90,8 +92,9 @@ public sealed class IntegrationTestsFixture : IAsyncLifetime
         return new TestAnswers
         {
             UserId = userId,
-            AccountIds = [account.Id],
+            AccountIds = [account.Id, account1.Id, account2.Id],
             AmountOfTransactions = amountOfTransactions,
+            AmountOfAccounts = 3
         };
     }
 

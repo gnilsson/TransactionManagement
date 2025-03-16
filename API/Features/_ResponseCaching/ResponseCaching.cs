@@ -44,7 +44,7 @@ public static class ResponseCaching
 
         if (metadata.CachingStrategy.VariantIsDefault)
         {
-            var cacheKey = string.Format(
+            var defaultCacheKey = string.Format(
                 Keys.Paginated,
                 metadata.GroupName,
                 paginationQuery.PageNumber,
@@ -53,30 +53,27 @@ public static class ResponseCaching
                 paginationQuery.SortDirection,
                 paginationQuery.Mode);
 
-            var tag = string.Format(Tags.GroupName, metadata.GroupName);
+            var defaultTag = string.Format(Tags.GroupName, metadata.GroupName);
 
-            return new(cacheKey, tag);
+            return new(defaultCacheKey, defaultTag);
         }
-        else if (metadata.CachingStrategy.Variant is StrategyVariant.ForeignId)
-        {
-            var foreignId = context.Request.Query[metadata.CachingStrategy.ArgumentName].ToString();
 
-            var cacheKey = string.Format(
-                Keys.PaginatedOnForeignId,
-                metadata.GroupName,
-                foreignId,
-                paginationQuery.PageNumber,
-                paginationQuery.PageSize,
-                paginationQuery.SortBy,
-                paginationQuery.SortDirection,
-                paginationQuery.Mode);
+        // Variant is CachingStrategy.StrategyVariant.ForeignId
+        var foreignId = context.Request.Query[metadata.CachingStrategy.ArgumentName].ToString();
 
-            var tag = string.Format(Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
+        var cacheKey = string.Format(
+            Keys.PaginatedOnForeignId,
+            metadata.GroupName,
+            foreignId,
+            paginationQuery.PageNumber,
+            paginationQuery.PageSize,
+            paginationQuery.SortBy,
+            paginationQuery.SortDirection,
+            paginationQuery.Mode);
 
-            return new(cacheKey, tag);
-        }
-        ThrowHelper.Throw("The caching strategy variant is not supported.");
-        return null!;
+        var tag = string.Format(Tags.GroupNameWithIdentifier, metadata.GroupName, foreignId);
+
+        return new(cacheKey, tag);
     }
 
     public static string CreateTag(GetEndpointMetadata metadata, byte[]? requestBodyBuffer)
