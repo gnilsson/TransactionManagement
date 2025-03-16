@@ -1,6 +1,4 @@
-﻿using API.Endpoints.IdentityEndpoints;
-using API.ExceptionHandling;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Text;
@@ -57,16 +55,13 @@ public sealed class AuthenticationTokenService
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
-        var validationResult = await tokenHandler.ValidateTokenAsync(token, validationParameters);
 
+        var validationResult = await tokenHandler.ValidateTokenAsync(token, validationParameters);
         return validationResult;
     }
 
-    public async Task<string?> RenewAccessTokenAsync(HttpContext context, CancellationToken cancellationToken)
+    public async Task<string?> RenewAccessTokenAsync(string refreshToken, CancellationToken cancellationToken)
     {
-        var refreshToken = context.Session.GetString("RefreshToken");
-        ThrowHelper.ThrowIfNull(refreshToken, "Refresh token not found.");
-
         var parameters = new Dictionary<string, string>
         {
             ["client_id"] = _keyCloak.ClientID,
@@ -83,7 +78,6 @@ public sealed class AuthenticationTokenService
 
         var tokenContent = await tokenResponse.Content.ReadAsStringAsync(cancellationToken);
         var tokenData = JsonSerializer.Deserialize<AuthenticationTokenData>(tokenContent)!;
-
         return tokenData.AccessToken;
     }
 }

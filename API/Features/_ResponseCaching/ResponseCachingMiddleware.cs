@@ -18,6 +18,8 @@ public sealed class ResponseCachingMiddleware
 
     // note:
     // there are some things that can be done regarding the effectivity of the cache
+    // for example, we check if the data exists in the cache by comparing the request key with existing keys, if it isn't an exact match
+    // and then we stitch together the response from the cache to match current request
     public async Task InvokeAsync(HttpContext context)
     {
         var cancellationToken = context.RequestAborted;

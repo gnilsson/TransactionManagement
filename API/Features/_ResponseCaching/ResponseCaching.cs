@@ -76,6 +76,8 @@ public static class ResponseCaching
         return new(cacheKey, tag);
     }
 
+    // note:
+    // the request parsing logic is here temporarily
     public static string CreateTag(GetEndpointMetadata metadata, byte[]? requestBodyBuffer)
     {
         if (metadata.CachingStrategy.VariantIsDefault)
