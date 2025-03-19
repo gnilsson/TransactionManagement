@@ -21,7 +21,7 @@ public abstract class GetEndpoint<TEntity, TRequest, TResponse> where TEntity : 
         var queryable = _dbContext
             .Set<TEntity>()
             .AsNoTracking()
-            .Where(GetWhereExpression(request));
+            .Where(GetQueryExpression(request));
 
         var paginationQuery = (Pagination.Query)context.Items[Pagination.Defaults.QueryKey]!;
         var paginatedQueryable = queryable
@@ -63,5 +63,5 @@ public abstract class GetEndpoint<TEntity, TRequest, TResponse> where TEntity : 
 
     protected abstract Expression<Func<TEntity, TResponse>> GetProjectionExpression();
 
-    protected abstract Expression<Func<TEntity, bool>> GetWhereExpression(TRequest request);
+    protected abstract Expression<Func<TEntity, bool>> GetQueryExpression(TRequest request);
 }

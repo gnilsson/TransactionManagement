@@ -32,7 +32,7 @@ public sealed class GetAccounts
             };
         }
 
-        protected override Expression<Func<Account, bool>> GetWhereExpression(Request request)
+        protected override Expression<Func<Account, bool>> GetQueryExpression(Request request)
         {
             return x => true;
         }

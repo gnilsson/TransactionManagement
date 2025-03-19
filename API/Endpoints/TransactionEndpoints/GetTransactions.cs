@@ -38,7 +38,7 @@ public static class GetTransactions
             };
         }
 
-        protected override Expression<Func<Transaction, bool>> GetWhereExpression(Request request)
+        protected override Expression<Func<Transaction, bool>> GetQueryExpression(Request request)
         {
             return x => x.AccountId == request.AccountId;
         }
